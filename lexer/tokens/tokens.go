@@ -1,7 +1,9 @@
 package tokens
 
+import "calabash/internal/tokentype"
+
 type Token struct {
-	Type     tokentype
+	Type     tokentype.Tokentype
 	Lexeme   string
 	Position struct {
 		Row int
@@ -9,7 +11,7 @@ type Token struct {
 	}
 }
 
-func New(t tokentype, l string, r int, c int) Token {
+func New(t tokentype.Tokentype, l string, r int, c int) Token {
 	return Token{
 		Type:   t,
 		Lexeme: l,

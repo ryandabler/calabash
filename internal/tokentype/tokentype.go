@@ -1,9 +1,9 @@
-package tokens
+package tokentype
 
-type tokentype int
+type Tokentype int
 
 const (
-	LEFT_PAREN tokentype = iota
+	LEFT_PAREN Tokentype = iota
 	RIGHT_PAREN
 	LEFT_BRACKET
 	RIGHT_BRACKET

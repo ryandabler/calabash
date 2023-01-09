@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"calabash/errors"
+	"calabash/internal/tokentype"
 	"calabash/lexer/tokens"
 	"fmt"
 )
@@ -29,47 +30,47 @@ func (s *scanner) Read(str string) ([]tokens.Token, error) {
 			s.pos.col = -1
 
 		case '(':
-			ts = append(ts, tokens.New(tokens.LEFT_PAREN, "(", s.pos.row, s.pos.col))
+			ts = append(ts, tokens.New(tokentype.LEFT_PAREN, "(", s.pos.row, s.pos.col))
 
 		case ')':
-			ts = append(ts, tokens.New(tokens.RIGHT_PAREN, ")", s.pos.row, s.pos.col))
+			ts = append(ts, tokens.New(tokentype.RIGHT_PAREN, ")", s.pos.row, s.pos.col))
 
 		case '[':
-			ts = append(ts, tokens.New(tokens.LEFT_BRACKET, "[", s.pos.row, s.pos.col))
+			ts = append(ts, tokens.New(tokentype.LEFT_BRACKET, "[", s.pos.row, s.pos.col))
 
 		case ']':
-			ts = append(ts, tokens.New(tokens.RIGHT_BRACKET, "]", s.pos.row, s.pos.col))
+			ts = append(ts, tokens.New(tokentype.RIGHT_BRACKET, "]", s.pos.row, s.pos.col))
 
 		case '{':
-			ts = append(ts, tokens.New(tokens.LEFT_BRACE, "{", s.pos.row, s.pos.col))
+			ts = append(ts, tokens.New(tokentype.LEFT_BRACE, "{", s.pos.row, s.pos.col))
 
 		case '}':
-			ts = append(ts, tokens.New(tokens.RIGHT_BRACE, "}", s.pos.row, s.pos.col))
+			ts = append(ts, tokens.New(tokentype.RIGHT_BRACE, "}", s.pos.row, s.pos.col))
 
 		case ',':
-			ts = append(ts, tokens.New(tokens.COMMA, ",", s.pos.row, s.pos.col))
+			ts = append(ts, tokens.New(tokentype.COMMA, ",", s.pos.row, s.pos.col))
 
 		case ';':
-			ts = append(ts, tokens.New(tokens.SEMICOLON, ";", s.pos.row, s.pos.col))
+			ts = append(ts, tokens.New(tokentype.SEMICOLON, ";", s.pos.row, s.pos.col))
 
 		case '?':
-			ts = append(ts, tokens.New(tokens.QUESTION, "?", s.pos.row, s.pos.col))
+			ts = append(ts, tokens.New(tokentype.QUESTION, "?", s.pos.row, s.pos.col))
 
 		case '_':
-			ts = append(ts, tokens.New(tokens.UNDERSCORE, "_", s.pos.row, s.pos.col))
+			ts = append(ts, tokens.New(tokentype.UNDERSCORE, "_", s.pos.row, s.pos.col))
 
 		case '<':
 			{
 				next := s.peek()
 
 				if next == '=' {
-					ts = append(ts, tokens.New(tokens.LESS_EQUAL, "<=", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.LESS_EQUAL, "<=", s.pos.row, s.pos.col))
 					s.next() // Move ahead one token since we have a two-character token
 				} else if next == '<' {
-					ts = append(ts, tokens.New(tokens.LESS_LESS, "<<", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.LESS_LESS, "<<", s.pos.row, s.pos.col))
 					s.next() // Move ahead one token since we have a two-character token
 				} else {
-					ts = append(ts, tokens.New(tokens.LESS, "<", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.LESS, "<", s.pos.row, s.pos.col))
 				}
 			}
 
@@ -78,13 +79,13 @@ func (s *scanner) Read(str string) ([]tokens.Token, error) {
 				next := s.peek()
 
 				if next == '=' {
-					ts = append(ts, tokens.New(tokens.GREAT_EQUAL, ">=", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.GREAT_EQUAL, ">=", s.pos.row, s.pos.col))
 					s.next() // Move ahead one token since we have a two-character token
 				} else if next == '>' {
-					ts = append(ts, tokens.New(tokens.GREAT_GREAT, ">>", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.GREAT_GREAT, ">>", s.pos.row, s.pos.col))
 					s.next() // Move ahead one token since we have a two-character token
 				} else {
-					ts = append(ts, tokens.New(tokens.GREAT, ">", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.GREAT, ">", s.pos.row, s.pos.col))
 				}
 			}
 
@@ -93,10 +94,10 @@ func (s *scanner) Read(str string) ([]tokens.Token, error) {
 				next := s.peek()
 
 				if next == '=' {
-					ts = append(ts, tokens.New(tokens.EQUAL_EQUAL, "==", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.EQUAL_EQUAL, "==", s.pos.row, s.pos.col))
 					s.next() // Move ahead one token since we have a two-character token
 				} else {
-					ts = append(ts, tokens.New(tokens.EQUAL, "=", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.EQUAL, "=", s.pos.row, s.pos.col))
 				}
 			}
 
@@ -105,10 +106,10 @@ func (s *scanner) Read(str string) ([]tokens.Token, error) {
 				next := s.peek()
 
 				if next == '=' {
-					ts = append(ts, tokens.New(tokens.BANG_EQUAL, "!=", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.BANG_EQUAL, "!=", s.pos.row, s.pos.col))
 					s.next() // Move ahead one token since we have a two-character token
 				} else {
-					ts = append(ts, tokens.New(tokens.BANG, "!", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.BANG, "!", s.pos.row, s.pos.col))
 				}
 			}
 
@@ -117,13 +118,13 @@ func (s *scanner) Read(str string) ([]tokens.Token, error) {
 				next := s.peek()
 
 				if next == '|' {
-					ts = append(ts, tokens.New(tokens.STROKE_STROKE, "||", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.STROKE_STROKE, "||", s.pos.row, s.pos.col))
 					s.next() // Move ahead one token since we have a two-character token
 				} else if next == '>' {
-					ts = append(ts, tokens.New(tokens.STROKE_GREAT, "|>", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.STROKE_GREAT, "|>", s.pos.row, s.pos.col))
 					s.next() // Move ahead one token since we have a two-character token
 				} else {
-					ts = append(ts, tokens.New(tokens.STROKE, "|", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.STROKE, "|", s.pos.row, s.pos.col))
 				}
 			}
 
@@ -132,46 +133,46 @@ func (s *scanner) Read(str string) ([]tokens.Token, error) {
 				next := s.peek()
 
 				if next == '&' {
-					ts = append(ts, tokens.New(tokens.AMPERSAND_AMPERSAND, "&&", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.AMPERSAND_AMPERSAND, "&&", s.pos.row, s.pos.col))
 					s.next() // Move ahead one token since we have a two-character token
 				} else {
-					ts = append(ts, tokens.New(tokens.AMPERSAND, "&", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.AMPERSAND, "&", s.pos.row, s.pos.col))
 				}
 			}
 
 		case '^':
-			ts = append(ts, tokens.New(tokens.CARET, "^", s.pos.row, s.pos.col))
+			ts = append(ts, tokens.New(tokentype.CARET, "^", s.pos.row, s.pos.col))
 
 		case '~':
-			ts = append(ts, tokens.New(tokens.TILDE, "~", s.pos.row, s.pos.col))
+			ts = append(ts, tokens.New(tokentype.TILDE, "~", s.pos.row, s.pos.col))
 
 		case '/':
-			ts = append(ts, tokens.New(tokens.SLASH, "/", s.pos.row, s.pos.col))
+			ts = append(ts, tokens.New(tokentype.SLASH, "/", s.pos.row, s.pos.col))
 
 		case '*':
 			{
 				next := s.peek()
 
 				if next == '*' {
-					ts = append(ts, tokens.New(tokens.ASTERISK_ASTERISK, "**", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.ASTERISK_ASTERISK, "**", s.pos.row, s.pos.col))
 					s.next() // Move ahead one token since we have a two-character token
 				} else {
-					ts = append(ts, tokens.New(tokens.ASTERISK, "*", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.ASTERISK, "*", s.pos.row, s.pos.col))
 				}
 			}
 
 		case '+':
-			ts = append(ts, tokens.New(tokens.PLUS, "+", s.pos.row, s.pos.col))
+			ts = append(ts, tokens.New(tokentype.PLUS, "+", s.pos.row, s.pos.col))
 
 		case '-':
 			{
 				next := s.peek()
 
 				if next == '>' {
-					ts = append(ts, tokens.New(tokens.MINUS_GREAT, "->", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.MINUS_GREAT, "->", s.pos.row, s.pos.col))
 					s.next() // Move ahead one token since we have a two-character token
 				} else {
-					ts = append(ts, tokens.New(tokens.MINUS, "-", s.pos.row, s.pos.col))
+					ts = append(ts, tokens.New(tokentype.MINUS, "-", s.pos.row, s.pos.col))
 				}
 			}
 
@@ -193,7 +194,7 @@ func (s *scanner) Read(str string) ([]tokens.Token, error) {
 				cs = append(cs, s.char())
 				s.next()
 
-				ts = append(ts, tokens.New(tokens.STRING, string(cs), s.pos.row, col))
+				ts = append(ts, tokens.New(tokentype.STRING, string(cs), s.pos.row, col))
 			}
 
 		case '\'':
@@ -214,7 +215,7 @@ func (s *scanner) Read(str string) ([]tokens.Token, error) {
 				cs = append(cs, s.char())
 				s.next()
 
-				ts = append(ts, tokens.New(tokens.STRING, string(cs), s.pos.row, col))
+				ts = append(ts, tokens.New(tokentype.STRING, string(cs), s.pos.row, col))
 			}
 
 		default:
@@ -243,7 +244,7 @@ func (s *scanner) Read(str string) ([]tokens.Token, error) {
 					ds = append(ds, s.char())
 				}
 
-				ts = append(ts, tokens.New(tokens.NUMBER, string(ds), s.pos.row, col))
+				ts = append(ts, tokens.New(tokentype.NUMBER, string(ds), s.pos.row, col))
 			}
 
 			if isAlpha(s.char()) {
@@ -263,7 +264,7 @@ func (s *scanner) Read(str string) ([]tokens.Token, error) {
 				// Else replace dummy data with actual data from scanner for
 				// keyword token.
 				if !ok {
-					tk = tokens.New(tokens.IDENTIFIER, word, s.pos.row, col)
+					tk = tokens.New(tokentype.IDENTIFIER, word, s.pos.row, col)
 				} else {
 					tk.Lexeme = word
 					tk.Position.Row = s.pos.row

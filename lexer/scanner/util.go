@@ -1,6 +1,9 @@
 package scanner
 
-import "calabash/lexer/tokens"
+import (
+	"calabash/internal/tokentype"
+	"calabash/lexer/tokens"
+)
 
 func isDigit(r rune) bool {
 	if r == -1 {
@@ -15,13 +18,13 @@ func isAlpha(r rune) bool {
 }
 
 var keywords map[string]tokens.Token = map[string]tokens.Token{
-	"if":     tokens.New(tokens.IF, "", 0, 0),
-	"else":   tokens.New(tokens.ELSE, "", 0, 0),
-	"for":    tokens.New(tokens.FOR, "", 0, 0),
-	"let":    tokens.New(tokens.LET, "", 0, 0),
-	"true":   tokens.New(tokens.TRUE, "", 0, 0),
-	"false":  tokens.New(tokens.FALSE, "", 0, 0),
-	"fn":     tokens.New(tokens.FN, "", 0, 0),
-	"return": tokens.New(tokens.RETURN, "", 0, 0),
-	"bottom": tokens.New(tokens.BOTTOM, "", 0, 0),
+	"if":     tokens.New(tokentype.IF, "", 0, 0),
+	"else":   tokens.New(tokentype.ELSE, "", 0, 0),
+	"for":    tokens.New(tokentype.FOR, "", 0, 0),
+	"let":    tokens.New(tokentype.LET, "", 0, 0),
+	"true":   tokens.New(tokentype.TRUE, "", 0, 0),
+	"false":  tokens.New(tokentype.FALSE, "", 0, 0),
+	"fn":     tokens.New(tokentype.FN, "", 0, 0),
+	"return": tokens.New(tokentype.RETURN, "", 0, 0),
+	"bottom": tokens.New(tokentype.BOTTOM, "", 0, 0),
 }
