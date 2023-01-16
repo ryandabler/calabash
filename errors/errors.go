@@ -15,3 +15,11 @@ type ParseError struct {
 func (e ParseError) Error() string {
 	return e.Msg
 }
+
+type RuntimeError struct {
+	Msg string
+}
+
+func (e RuntimeError) Error() string {
+	return e.Msg
+}
