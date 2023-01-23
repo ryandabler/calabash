@@ -13,26 +13,26 @@ type visitor[T any] interface {
 	VisitStrLitExpr(e ast.StringLiteralExpr) (T, error)
 }
 
-func Accept[T any](e ast.Expr, v visitor[T]) (T, error) {
+func Accept[T any](n ast.Node, v visitor[T]) (T, error) {
 	var empty T
 
-	if n, ok := e.(ast.BinaryExpr); ok {
+	if n, ok := n.(ast.BinaryExpr); ok {
 		return v.VisitBinaryExpr(n)
 	}
 
-	if n, ok := e.(ast.UnaryExpr); ok {
+	if n, ok := n.(ast.UnaryExpr); ok {
 		return v.VisitUnaryExpr(n)
 	}
 
-	if n, ok := e.(ast.GroupingExpr); ok {
+	if n, ok := n.(ast.GroupingExpr); ok {
 		return v.VisitGroupingExpr(n)
 	}
 
-	if n, ok := e.(ast.NumericLiteralExpr); ok {
+	if n, ok := n.(ast.NumericLiteralExpr); ok {
 		return v.VisitNumLitExpr(n)
 	}
 
-	if n, ok := e.(ast.StringLiteralExpr); ok {
+	if n, ok := n.(ast.StringLiteralExpr); ok {
 		return v.VisitStrLitExpr(n)
 	}
 

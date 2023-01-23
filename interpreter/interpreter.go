@@ -12,18 +12,33 @@ import (
 
 type interpreter struct{}
 
-func (i *interpreter) Eval(e ast.Expr) (interface{}, error) {
-	return visitor.Accept[interface{}](e, i)
+func (i *interpreter) Eval(ns []ast.Node) (interface{}, error) {
+	var v interface{}
+	var err error
+
+	for _, n := range ns {
+		v, err = i.evalNode(n)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return v, err
+}
+
+func (i *interpreter) evalNode(n ast.Node) (interface{}, error) {
+	return visitor.Accept[interface{}](n, i)
 }
 
 func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
-	l, err := i.Eval(e.Left)
+	l, err := i.evalNode(e.Left)
 
 	if err != nil {
 		return nil, err
 	}
 
-	r, err := i.Eval(e.Right)
+	r, err := i.evalNode(e.Right)
 
 	if err != nil {
 		return nil, err
@@ -150,11 +165,11 @@ func (i *interpreter) VisitStrLitExpr(e ast.StringLiteralExpr) (interface{}, err
 }
 
 func (i *interpreter) VisitGroupingExpr(e ast.GroupingExpr) (interface{}, error) {
-	return i.Eval(e.Expr)
+	return i.evalNode(e.Expr)
 }
 
 func (i *interpreter) VisitUnaryExpr(e ast.UnaryExpr) (interface{}, error) {
-	expr, err := i.Eval(e.Expr)
+	expr, err := i.evalNode(e.Expr)
 
 	if err != nil {
 		return nil, err

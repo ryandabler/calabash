@@ -13,20 +13,8 @@ type parser struct {
 	i      int
 }
 
-func (p *parser) Parse() (ast.Expr, error) {
-	ex, err := p.expression()
-
-	if err != nil {
-		return nil, err
-	}
-
-	if !p.atEnd() {
-		tk := p.tokens[p.i]
-		msg := fmt.Sprintf("Did not reach end of input: unprocessed token %q at %d:%d", tk.Lexeme, tk.Position.Row, tk.Position.Col)
-		return nil, errors.ParseError{Msg: msg}
-	}
-
-	return ex, nil
+func (p *parser) Parse() ([]ast.Node, error) {
+	return p.program()
 }
 
 func (p *parser) atEnd() bool {
@@ -67,6 +55,22 @@ func (p *parser) is(ts ...tokentype.Tokentype) bool {
 
 func (p *parser) next() {
 	p.i++
+}
+
+func (p *parser) program() ([]ast.Node, error) {
+	ts := []ast.Node{}
+
+	for !p.atEnd() {
+		expr, err := p.expression()
+
+		if err != nil {
+			return []ast.Node{}, err
+		}
+
+		ts = append(ts, expr)
+	}
+
+	return ts, nil
 }
 
 func (p *parser) expression() (ast.Expr, error) {

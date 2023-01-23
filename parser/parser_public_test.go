@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func astsAreEqual(a ast.Expr, b ast.Expr) bool {
+func nodesAreEqual(a ast.Node, b ast.Node) bool {
 	kindA := reflect.TypeOf(a).Kind()
 	kindB := reflect.TypeOf(b).Kind()
 
@@ -23,8 +23,8 @@ func astsAreEqual(a ast.Expr, b ast.Expr) bool {
 
 	if okA && okB {
 		return tA1.Operator.Type == tB1.Operator.Type &&
-			astsAreEqual(tA1.Left, tB1.Left) &&
-			astsAreEqual(tA1.Right, tB1.Right)
+			nodesAreEqual(tA1.Left, tB1.Left) &&
+			nodesAreEqual(tA1.Right, tB1.Right)
 	}
 
 	tA2, okA := a.(ast.UnaryExpr)
@@ -32,14 +32,14 @@ func astsAreEqual(a ast.Expr, b ast.Expr) bool {
 
 	if okA && okB {
 		return tA2.Operator.Type == tB2.Operator.Type &&
-			astsAreEqual(tA2.Expr, tB2.Expr)
+			nodesAreEqual(tA2.Expr, tB2.Expr)
 	}
 
 	tA3, okA := a.(ast.GroupingExpr)
 	tB3, okB := b.(ast.GroupingExpr)
 
 	if okA && okB {
-		return astsAreEqual(tA3.Expr, tB3.Expr)
+		return nodesAreEqual(tA3.Expr, tB3.Expr)
 	}
 
 	tA4, okA := a.(ast.NumericLiteralExpr)
@@ -59,48 +59,114 @@ func astsAreEqual(a ast.Expr, b ast.Expr) bool {
 	return false
 }
 
+func astsAreEqual(as []ast.Node, bs []ast.Node) bool {
+	if len(as) != len(bs) {
+		return false
+	}
+
+	for i, a := range as {
+		b := bs[i]
+
+		if !nodesAreEqual(a, b) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func TestParse(t *testing.T) {
 	t.Run("productions", func(t *testing.T) {
 		table := []struct {
 			name     string
 			text     string
-			expected ast.Expr
+			expected []ast.Node
 		}{
-			{name: "fundamental string 1", text: "'abc'", expected: ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "'abc'", 0, 0)}},
-			{name: "fundamental string 2", text: "\"abc\"", expected: ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "\"abc\"", 0, 0)}},
-			{name: "fundamental number", text: "123", expected: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "123", 0, 0)}},
-			{name: "fundamental grouping", text: "(123)", expected: ast.GroupingExpr{
-				Expr: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "123", 0, 0)},
-			}},
-			{name: "unary minus", text: "-7", expected: ast.UnaryExpr{
-				Operator: tokens.New(tokentype.MINUS, "-", 0, 0),
-				Expr:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "7", 0, 0)},
-			}},
-			{name: "binary exponentiation", text: "1 ** 2", expected: ast.BinaryExpr{
-				Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
-				Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
-				Operator: tokens.New(tokentype.ASTERISK_ASTERISK, "**", 0, 0),
-			}},
-			{name: "binary multiplication", text: "1 * 2", expected: ast.BinaryExpr{
-				Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
-				Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
-				Operator: tokens.New(tokentype.ASTERISK, "*", 0, 0),
-			}},
-			{name: "binary division", text: "1 / 2", expected: ast.BinaryExpr{
-				Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
-				Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
-				Operator: tokens.New(tokentype.SLASH, "/", 0, 0),
-			}},
-			{name: "binary addition", text: "1 + 2", expected: ast.BinaryExpr{
-				Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
-				Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
-				Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
-			}},
-			{name: "binary subtraction", text: "1 - 2", expected: ast.BinaryExpr{
-				Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
-				Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
-				Operator: tokens.New(tokentype.MINUS, "-", 0, 0),
-			}},
+			{
+				name:     "fundamental string 1",
+				text:     "'abc'",
+				expected: []ast.Node{ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "'abc'", 0, 0)}},
+			},
+			{
+				name:     "fundamental string 2",
+				text:     "\"abc\"",
+				expected: []ast.Node{ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "\"abc\"", 0, 0)}},
+			},
+			{
+				name:     "fundamental number",
+				text:     "123",
+				expected: []ast.Node{ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "123", 0, 0)}},
+			},
+			{
+				name:     "fundamental grouping",
+				text:     "(123)",
+				expected: []ast.Node{ast.GroupingExpr{Expr: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "123", 0, 0)}}},
+			},
+			{
+				name: "unary minus",
+				text: "-7",
+				expected: []ast.Node{
+					ast.UnaryExpr{
+						Operator: tokens.New(tokentype.MINUS, "-", 0, 0),
+						Expr:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "7", 0, 0)},
+					},
+				},
+			},
+			{
+				name: "binary exponentiation",
+				text: "1 ** 2",
+				expected: []ast.Node{
+					ast.BinaryExpr{
+						Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+						Operator: tokens.New(tokentype.ASTERISK_ASTERISK, "**", 0, 0),
+					},
+				},
+			},
+			{
+				name: "binary multiplication",
+				text: "1 * 2",
+				expected: []ast.Node{
+					ast.BinaryExpr{
+						Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+						Operator: tokens.New(tokentype.ASTERISK, "*", 0, 0),
+					},
+				},
+			},
+			{
+				name: "binary division",
+				text: "1 / 2",
+				expected: []ast.Node{
+					ast.BinaryExpr{
+						Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+						Operator: tokens.New(tokentype.SLASH, "/", 0, 0),
+					},
+				},
+			},
+			{
+				name: "binary addition",
+				text: "1 + 2",
+				expected: []ast.Node{
+					ast.BinaryExpr{
+						Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+						Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
+					},
+				},
+			},
+			{
+				name: "binary subtraction",
+				text: "1 - 2",
+				expected: []ast.Node{
+					ast.BinaryExpr{
+						Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+						Operator: tokens.New(tokentype.MINUS, "-", 0, 0),
+					},
+				},
+			},
 		}
 
 		for _, e := range table {
@@ -126,64 +192,72 @@ func TestParse(t *testing.T) {
 		table := []struct {
 			name     string
 			text     string
-			expected ast.Expr
+			expected []ast.Node
 		}{
 			{
 				name: "left associativity addition",
 				text: "1 + 2 - 3 + 4",
-				expected: ast.BinaryExpr{
-					Left: ast.BinaryExpr{
+				expected: []ast.Node{
+					ast.BinaryExpr{
 						Left: ast.BinaryExpr{
-							Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
-							Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
-							Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
+							Left: ast.BinaryExpr{
+								Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+								Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
+							},
+							Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "3", 0, 0)},
+							Operator: tokens.New(tokentype.MINUS, "-", 0, 0),
 						},
-						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "3", 0, 0)},
-						Operator: tokens.New(tokentype.MINUS, "-", 0, 0),
+						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
+						Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
 					},
-					Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
-					Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
 				},
 			},
 			{
 				name: "left associativity multiplication",
 				text: "1 * 2 / 3 * 4",
-				expected: ast.BinaryExpr{
-					Left: ast.BinaryExpr{
+				expected: []ast.Node{
+					ast.BinaryExpr{
 						Left: ast.BinaryExpr{
-							Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
-							Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
-							Operator: tokens.New(tokentype.ASTERISK, "*", 0, 0),
+							Left: ast.BinaryExpr{
+								Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+								Operator: tokens.New(tokentype.ASTERISK, "*", 0, 0),
+							},
+							Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "3", 0, 0)},
+							Operator: tokens.New(tokentype.SLASH, "/", 0, 0),
 						},
-						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "3", 0, 0)},
-						Operator: tokens.New(tokentype.SLASH, "/", 0, 0),
+						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
+						Operator: tokens.New(tokentype.ASTERISK, "*", 0, 0),
 					},
-					Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
-					Operator: tokens.New(tokentype.ASTERISK, "*", 0, 0),
 				},
 			},
 			{
 				name: "left associativity exponentiation",
 				text: "1 ** 2 ** 3",
-				expected: ast.BinaryExpr{
-					Left: ast.BinaryExpr{
-						Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
-						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+				expected: []ast.Node{
+					ast.BinaryExpr{
+						Left: ast.BinaryExpr{
+							Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+							Operator: tokens.New(tokentype.ASTERISK_ASTERISK, "**", 0, 0),
+						},
+						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "3", 0, 0)},
 						Operator: tokens.New(tokentype.ASTERISK_ASTERISK, "**", 0, 0),
 					},
-					Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "3", 0, 0)},
-					Operator: tokens.New(tokentype.ASTERISK_ASTERISK, "**", 0, 0),
 				},
 			},
 			{
 				name: "right associativity unary",
 				text: "--1",
-				expected: ast.UnaryExpr{
-					Expr: ast.UnaryExpr{
-						Expr:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+				expected: []ast.Node{
+					ast.UnaryExpr{
+						Expr: ast.UnaryExpr{
+							Expr:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							Operator: tokens.New(tokentype.MINUS, "-", 0, 0),
+						},
 						Operator: tokens.New(tokentype.MINUS, "-", 0, 0),
 					},
-					Operator: tokens.New(tokentype.MINUS, "-", 0, 0),
 				},
 			},
 		}
@@ -208,21 +282,23 @@ func TestParse(t *testing.T) {
 	})
 
 	t.Run("precedence", func(t *testing.T) {
-		expected := ast.BinaryExpr{
-			Left: ast.UnaryExpr{
-				Operator: tokens.New(tokentype.MINUS, "-", 0, 0),
-				Expr:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
-			},
-			Right: ast.BinaryExpr{
-				Left: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
-				Right: ast.BinaryExpr{
-					Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "3", 0, 0)},
-					Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
-					Operator: tokens.New(tokentype.ASTERISK_ASTERISK, "**", 0, 0),
+		expected := []ast.Node{
+			ast.BinaryExpr{
+				Left: ast.UnaryExpr{
+					Operator: tokens.New(tokentype.MINUS, "-", 0, 0),
+					Expr:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
 				},
-				Operator: tokens.New(tokentype.ASTERISK, "*", 0, 0),
+				Right: ast.BinaryExpr{
+					Left: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+					Right: ast.BinaryExpr{
+						Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "3", 0, 0)},
+						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
+						Operator: tokens.New(tokentype.ASTERISK_ASTERISK, "**", 0, 0),
+					},
+					Operator: tokens.New(tokentype.ASTERISK, "*", 0, 0),
+				},
+				Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
 			},
-			Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
 		}
 
 		ts, err := scanner.New().Read("-1 + 2 * 3 ** 4")
