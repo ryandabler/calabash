@@ -4,6 +4,7 @@ import (
 	"calabash/ast"
 	"calabash/errors"
 	"calabash/internal/tokentype"
+	"calabash/internal/value"
 	"calabash/internal/visitor"
 	"fmt"
 	"math"
@@ -49,23 +50,23 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 	switch op {
 	case tokentype.PLUS:
 		{
-			ln, okl := l.(vnumber)
-			rn, okr := r.(vnumber)
+			ln, okl := l.(value.VNumber)
+			rn, okr := r.(value.VNumber)
 
 			if okl && okr {
-				val := vnumber{
-					value: ln.value + rn.value,
+				val := value.VNumber{
+					Value: ln.Value + rn.Value,
 				}
 
 				return val, nil
 			}
 
-			ls, okl := l.(vstring)
-			rs, okr := r.(vstring)
+			ls, okl := l.(value.VString)
+			rs, okr := r.(value.VString)
 
 			if okl && okr {
-				val := vstring{
-					value: ls.value + rs.value,
+				val := value.VString{
+					Value: ls.Value + rs.Value,
 				}
 
 				return val, nil
@@ -76,15 +77,15 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 
 	case tokentype.MINUS:
 		{
-			ln, okl := l.(vnumber)
-			rn, okr := r.(vnumber)
+			ln, okl := l.(value.VNumber)
+			rn, okr := r.(value.VNumber)
 
 			if !okl || !okr {
 				return nil, errors.RuntimeError{Msg: "Binary '-' can only be performed on numbers"}
 			}
 
-			val := vnumber{
-				value: ln.value - rn.value,
+			val := value.VNumber{
+				Value: ln.Value - rn.Value,
 			}
 
 			return val, nil
@@ -92,15 +93,15 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 
 	case tokentype.ASTERISK:
 		{
-			ln, okl := l.(vnumber)
-			rn, okr := r.(vnumber)
+			ln, okl := l.(value.VNumber)
+			rn, okr := r.(value.VNumber)
 
 			if !okl || !okr {
 				return nil, errors.RuntimeError{Msg: "Binary '*' can only be performed on numbers"}
 			}
 
-			val := vnumber{
-				value: ln.value * rn.value,
+			val := value.VNumber{
+				Value: ln.Value * rn.Value,
 			}
 
 			return val, nil
@@ -108,15 +109,15 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 
 	case tokentype.SLASH:
 		{
-			ln, okl := l.(vnumber)
-			rn, okr := r.(vnumber)
+			ln, okl := l.(value.VNumber)
+			rn, okr := r.(value.VNumber)
 
 			if !okl || !okr {
 				return nil, errors.RuntimeError{Msg: "Binary '/' can only be performed on numbers"}
 			}
 
-			val := vnumber{
-				value: ln.value / rn.value,
+			val := value.VNumber{
+				Value: ln.Value / rn.Value,
 			}
 
 			return val, nil
@@ -124,15 +125,15 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 
 	case tokentype.ASTERISK_ASTERISK:
 		{
-			ln, okl := l.(vnumber)
-			rn, okr := r.(vnumber)
+			ln, okl := l.(value.VNumber)
+			rn, okr := r.(value.VNumber)
 
 			if !okl || !okr {
 				return nil, errors.RuntimeError{Msg: "Binary '**' can only be performed on numbers"}
 			}
 
-			val := vnumber{
-				value: math.Pow(ln.value, rn.value),
+			val := value.VNumber{
+				Value: math.Pow(ln.Value, rn.Value),
 			}
 
 			return val, nil
@@ -149,8 +150,8 @@ func (i *interpreter) VisitNumLitExpr(e ast.NumericLiteralExpr) (interface{}, er
 		return nil, err
 	}
 
-	v := vnumber{
-		value: n,
+	v := value.VNumber{
+		Value: n,
 	}
 
 	return v, nil
@@ -159,7 +160,7 @@ func (i *interpreter) VisitNumLitExpr(e ast.NumericLiteralExpr) (interface{}, er
 func (i *interpreter) VisitStrLitExpr(e ast.StringLiteralExpr) (interface{}, error) {
 	rs := []rune(e.Value.Lexeme)
 	l := len(rs)
-	str := vstring{value: string(rs[1 : l-1])}
+	str := value.VString{Value: string(rs[1 : l-1])}
 
 	return str, nil
 }
@@ -180,8 +181,8 @@ func (i *interpreter) VisitUnaryExpr(e ast.UnaryExpr) (interface{}, error) {
 	switch op {
 	case tokentype.MINUS:
 		{
-			if val, ok := expr.(vnumber); ok {
-				val.value *= -1
+			if val, ok := expr.(value.VNumber); ok {
+				val.Value *= -1
 				return val, nil
 			}
 
