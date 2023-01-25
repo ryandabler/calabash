@@ -192,7 +192,6 @@ func (s *scanner) Read(str string) ([]tokens.Token, error) {
 				}
 
 				cs = append(cs, s.char())
-				s.next()
 
 				ts = append(ts, tokens.New(tokentype.STRING, string(cs), s.pos.row, col))
 			}
@@ -213,7 +212,6 @@ func (s *scanner) Read(str string) ([]tokens.Token, error) {
 				}
 
 				cs = append(cs, s.char())
-				s.next()
 
 				ts = append(ts, tokens.New(tokentype.STRING, string(cs), s.pos.row, col))
 			}
