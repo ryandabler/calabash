@@ -39,6 +39,18 @@ func samePos(as []tokens.Token, bs []tokens.Token) bool {
 	return true
 }
 
+func lessEOF(ts []tokens.Token) []tokens.Token {
+	if len(ts) == 0 {
+		return ts
+	}
+
+	if ts[len(ts)-1].Type == tokentype.EOF {
+		return ts[:len(ts)-1]
+	}
+
+	return ts
+}
+
 func TestRead(t *testing.T) {
 	/*
 		Produce basic tokens
@@ -108,6 +120,9 @@ func TestRead(t *testing.T) {
 		sc := scanner.New()
 		ts, err := sc.Read(e.text)
 
+		// Remove EOF token as it contributes nothing to the test
+		ts = lessEOF(ts)
+
 		if err != nil && !e.willError {
 			t.Errorf("%s: Expected to receive an error when lexing %q", e.name, e.text)
 		}
@@ -141,6 +156,7 @@ func TestRead(t *testing.T) {
 	for _, e := range table {
 		sc := scanner.New()
 		ts, _ := sc.Read(e.text)
+		ts = lessEOF(ts)
 
 		if !same(ts, e.expected) {
 			t.Errorf("%s: Did not parse multi-char tokens properly. Got %#v instead of %#v", e.name, ts, e.expected)
@@ -171,6 +187,7 @@ func TestRead(t *testing.T) {
 	for _, e := range table {
 		sc := scanner.New()
 		ts, _ := sc.Read(e.text)
+		ts = lessEOF(ts)
 
 		if !samePos(ts, e.expected) {
 			t.Errorf("%s: Positional information was wrong from lexer. Got %#v but expected %#v", e.name, ts, e.expected)

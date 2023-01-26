@@ -18,7 +18,7 @@ func (p *parser) Parse() ([]ast.Node, error) {
 }
 
 func (p *parser) atEnd() bool {
-	return p.i >= len(p.tokens)
+	return p.tokens[p.i].Type == tokentype.EOF
 }
 
 func (p *parser) eat(ts ...tokentype.Tokentype) (tokens.Token, error) {

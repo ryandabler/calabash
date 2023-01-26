@@ -282,7 +282,7 @@ func (s *scanner) Read(str string) ([]tokens.Token, error) {
 		s.next()
 	}
 
-	return ts, nil
+	return append(ts, tokens.New(tokentype.EOF, "", s.pos.row, s.pos.col)), nil
 }
 
 func (s *scanner) isEnd() bool {

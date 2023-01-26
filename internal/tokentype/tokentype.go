@@ -48,4 +48,5 @@ const (
 	FN
 	RETURN
 	BOTTOM
+	EOF
 )
