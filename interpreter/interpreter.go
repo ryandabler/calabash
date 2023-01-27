@@ -193,6 +193,10 @@ func (i *interpreter) VisitUnaryExpr(e ast.UnaryExpr) (interface{}, error) {
 	return nil, errors.RuntimeError{Msg: fmt.Sprintf("The only supported unary operators are '-': got %q", e.Operator.Lexeme)}
 }
 
+func (i *interpreter) VisitBottomLitExpr(e ast.BottomLiteralExpr) (interface{}, error) {
+	return value.VBottom{}, nil
+}
+
 func New() *interpreter {
 	return &interpreter{}
 }

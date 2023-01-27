@@ -5,6 +5,7 @@ type vtype int
 const (
 	num vtype = iota
 	str
+	bottom
 )
 
 type Value interface {
@@ -25,4 +26,10 @@ type VString struct {
 
 func (v VString) v() vtype {
 	return str
+}
+
+type VBottom struct{}
+
+func (v VBottom) v() vtype {
+	return bottom
 }

@@ -57,6 +57,10 @@ func (a *analyzer) VisitUnaryExpr(e ast.UnaryExpr) (interface{}, error) {
 	return nil, a.analyzeNode(e.Expr)
 }
 
+func (a *analyzer) VisitBottomLitExpr(e ast.BottomLiteralExpr) (interface{}, error) {
+	return nil, nil
+}
+
 func New() *analyzer {
 	return &analyzer{}
 }

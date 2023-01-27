@@ -35,5 +35,6 @@ FUNDAMENTAL
     : NUMBER
     | STRING
     | '(' EXPRESSION ')'
+    | 'bottom'
     ;
 ```

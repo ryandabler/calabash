@@ -56,6 +56,13 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 		return tA5.Value.Lexeme == tB5.Value.Lexeme
 	}
 
+	_, okA = a.(ast.BottomLiteralExpr)
+	_, okB = b.(ast.BottomLiteralExpr)
+
+	if okA && okB {
+		return true
+	}
+
 	return false
 }
 
@@ -101,6 +108,12 @@ func TestParse(t *testing.T) {
 				name:     "fundamental grouping",
 				text:     "(123)",
 				expected: []ast.Node{ast.GroupingExpr{Expr: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "123", 0, 0)}}},
+			},
+			{
+			{
+				name:     "fundamental bottom",
+				text:     "bottom",
+				expected: []ast.Node{ast.BottomLiteralExpr{Token: tokens.New(tokentype.BOTTOM, "bottom", 0, 0)}},
 			},
 			{
 				name: "unary minus",

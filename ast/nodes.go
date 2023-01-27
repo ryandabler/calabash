@@ -9,6 +9,7 @@ const (
 	unary_expr
 	numeric_lit_expr
 	string_lit_expr
+	bottom_lit_expr
 	grouping_expr
 )
 
@@ -70,6 +71,18 @@ func (e StringLiteralExpr) e() nodetype {
 
 func (e StringLiteralExpr) n() nodetype {
 	return string_lit_expr
+}
+
+type BottomLiteralExpr struct {
+	Token tokens.Token
+}
+
+func (e BottomLiteralExpr) e() nodetype {
+	return bottom_lit_expr
+}
+
+func (e BottomLiteralExpr) n() nodetype {
+	return bottom_lit_expr
 }
 
 type GroupingExpr struct {
