@@ -23,3 +23,11 @@ type RuntimeError struct {
 func (e RuntimeError) Error() string {
 	return e.Msg
 }
+
+type StaticError struct {
+	Msg string
+}
+
+func (e StaticError) Error() string {
+	return e.Msg
+}

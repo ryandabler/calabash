@@ -10,7 +10,9 @@ const (
 	numeric_lit_expr
 	string_lit_expr
 	bottom_lit_expr
+	identifer_expr
 	grouping_expr
+	var_decl_stmt
 )
 
 type Node interface {
@@ -85,6 +87,18 @@ func (e BottomLiteralExpr) n() nodetype {
 	return bottom_lit_expr
 }
 
+type IdentifierExpr struct {
+	Name tokens.Token
+}
+
+func (e IdentifierExpr) e() nodetype {
+	return identifer_expr
+}
+
+func (e IdentifierExpr) n() nodetype {
+	return identifer_expr
+}
+
 type GroupingExpr struct {
 	Expr Expr
 }
@@ -95,4 +109,13 @@ func (e GroupingExpr) e() nodetype {
 
 func (e GroupingExpr) n() nodetype {
 	return grouping_expr
+}
+
+type VarDeclStmt struct {
+	Names  []tokens.Token
+	Values []Expr
+}
+
+func (s VarDeclStmt) n() nodetype {
+	return var_decl_stmt
 }

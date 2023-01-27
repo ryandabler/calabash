@@ -57,10 +57,34 @@ func (p *parser) next() {
 	p.i++
 }
 
+func (p *parser) current() tokens.Token {
+	return p.tokens[p.i]
+}
+
 func (p *parser) program() ([]ast.Node, error) {
 	ts := []ast.Node{}
 
 	for !p.atEnd() {
+		if p.is(tokentype.LET) {
+			p.eat(tokentype.LET)
+
+			n, err := p.assignment()
+
+			if err != nil {
+				return []ast.Node{}, err
+			}
+
+			_, err = p.eat(tokentype.SEMICOLON)
+
+			if err != nil {
+				n := p.current()
+				return []ast.Node{}, errors.ParseError{Msg: fmt.Sprintf("Missing semicolon at %d:%d", n.Position.Row, n.Position.Col)}
+			}
+
+			ts = append(ts, n)
+			continue
+		}
+
 		expr, err := p.expression()
 
 		if err != nil {
@@ -71,6 +95,34 @@ func (p *parser) program() ([]ast.Node, error) {
 	}
 
 	return ts, nil
+}
+
+func (p *parser) assignment() (ast.Node, error) {
+	names, err := p.assignmentNames()
+
+	if err != nil {
+		return nil, err
+	}
+
+	// No initializers are specified for this assignment
+	if p.is(tokentype.SEMICOLON) {
+		return ast.VarDeclStmt{Names: names, Values: []ast.Expr{}}, nil
+	}
+
+	// Gather initializing values
+	_, err = p.eat(tokentype.EQUAL)
+
+	if err != nil {
+		return nil, err
+	}
+
+	inits, err := p.commaExpressions()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.VarDeclStmt{Names: names, Values: inits}, nil
 }
 
 func (p *parser) expression() (ast.Expr, error) {
@@ -202,6 +254,11 @@ func (p *parser) fundamental() (ast.Expr, error) {
 	if p.is(tokentype.BOTTOM) {
 		s, _ := p.eat(tokentype.BOTTOM)
 		return ast.BottomLiteralExpr{Token: s}, nil
+	}
+
+	if p.is(tokentype.IDENTIFIER) {
+		s, _ := p.eat(tokentype.IDENTIFIER)
+		return ast.IdentifierExpr{Name: s}, nil
 	}
 
 	t := p.tokens[p.i]

@@ -63,6 +63,44 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 		return true
 	}
 
+	tA6, okA := a.(ast.IdentifierExpr)
+	tB6, okB := b.(ast.IdentifierExpr)
+
+	if okA && okB {
+		return tA6.Name.Lexeme == tB6.Name.Lexeme
+	}
+
+	tA7, okA := a.(ast.VarDeclStmt)
+	tB7, okB := b.(ast.VarDeclStmt)
+
+	if okA && okB {
+		if len(tA7.Names) != len(tB7.Names) {
+			return false
+		}
+
+		if len(tA7.Values) != len(tB7.Values) {
+			return false
+		}
+
+		for i, n1 := range tA7.Names {
+			n2 := tB7.Names[i]
+
+			if n1.Lexeme != n2.Lexeme {
+				return false
+			}
+		}
+
+		for i, v1 := range tA7.Values {
+			v2 := tB7.Values[i]
+
+			if !nodesAreEqual(v1, v2) {
+				return false
+			}
+		}
+
+		return true
+	}
+
 	return false
 }
 
@@ -110,6 +148,10 @@ func TestParse(t *testing.T) {
 				expected: []ast.Node{ast.GroupingExpr{Expr: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "123", 0, 0)}}},
 			},
 			{
+				name:     "fundamental identifier",
+				text:     "abc",
+				expected: []ast.Node{ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "abc", 0, 0)}},
+			},
 			{
 				name:     "fundamental bottom",
 				text:     "bottom",
@@ -177,6 +219,29 @@ func TestParse(t *testing.T) {
 						Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
 						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
 						Operator: tokens.New(tokentype.MINUS, "-", 0, 0),
+					},
+				},
+			},
+			{
+				name: "variable declaration w/o inits",
+				text: "let a, b;",
+				expected: []ast.Node{
+					ast.VarDeclStmt{
+						Names:  []tokens.Token{tokens.New(tokentype.IDENTIFIER, "a", 0, 0), tokens.New(tokentype.IDENTIFIER, "b", 0, 0)},
+						Values: []ast.Expr{},
+					},
+				},
+			},
+			{
+				name: "variable declaration w/ inits",
+				text: "let a, b = 1, 2;",
+				expected: []ast.Node{
+					ast.VarDeclStmt{
+						Names: []tokens.Token{tokens.New(tokentype.IDENTIFIER, "a", 0, 0), tokens.New(tokentype.IDENTIFIER, "b", 0, 0)},
+						Values: []ast.Expr{
+							ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+						},
 					},
 				},
 			},
@@ -346,7 +411,12 @@ func TestParse(t *testing.T) {
 			{name: "malformed multiplication expression 2", text: "1 * *"},
 			{name: "malformed addition expression 1", text: "1 +"},
 			{name: "malformed addition expression 2", text: "1 + -"},
-			{name: "malformed expression", text: "1 + 2 x"},
+			{name: "malformed variable declaration 1", text: "let 'ab';"},
+			{name: "malformed variable declaration 2", text: "let ab"},
+			{name: "malformed variable declaration 3", text: "let a = 4 +"},
+			{name: "malformed variable declaration 4", text: "let a = 'b'"},
+			{name: "malformed variable declaration 5", text: "let a, 1 = 'b'"},
+			{name: "malformed variable declaration 6", text: "let a, b = 1, ;"},
 		}
 
 		for _, e := range table {

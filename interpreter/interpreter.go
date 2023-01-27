@@ -3,6 +3,7 @@ package interpreter
 import (
 	"calabash/ast"
 	"calabash/errors"
+	"calabash/internal/environment"
 	"calabash/internal/tokentype"
 	"calabash/internal/value"
 	"calabash/internal/visitor"
@@ -11,7 +12,9 @@ import (
 	"strconv"
 )
 
-type interpreter struct{}
+type interpreter struct {
+	env *environment.Environment
+}
 
 func (i *interpreter) Eval(ns []ast.Node) (interface{}, error) {
 	var v interface{}
@@ -197,6 +200,39 @@ func (i *interpreter) VisitBottomLitExpr(e ast.BottomLiteralExpr) (interface{}, 
 	return value.VBottom{}, nil
 }
 
+func (i *interpreter) VisitIdentifierExpr(e ast.IdentifierExpr) (interface{}, error) {
+	return i.env.Get(e.Name.Lexeme), nil
+}
+
+func (i *interpreter) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {
+	for idx, n := range s.Names {
+		var val value.Value = value.VBottom{}
+		var ok bool
+
+		// If initial values have been specified for these declarations,
+		// determine them before adding them to the environment
+		if len(s.Values) > 0 {
+			v, err := i.evalNode(s.Values[idx])
+
+			if err != nil {
+				return nil, err
+			}
+
+			val, ok = v.(value.Value)
+
+			if !ok {
+				return nil, errors.RuntimeError{Msg: "Did not receive a value in variable declaration initialization."}
+			}
+		}
+
+		i.env.Add(n.Lexeme, val)
+	}
+
+	return nil, nil
+}
+
 func New() *interpreter {
-	return &interpreter{}
+	return &interpreter{
+		env: environment.New(),
+	}
 }
