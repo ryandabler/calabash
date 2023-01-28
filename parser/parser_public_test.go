@@ -101,6 +101,13 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 		return true
 	}
 
+	tA8, okA := a.(ast.BooleanLiteralExpr)
+	tB8, okB := b.(ast.BooleanLiteralExpr)
+
+	if okA && okB {
+		return tA8.Value.Type == tB8.Value.Type
+	}
+
 	return false
 }
 
@@ -156,6 +163,16 @@ func TestParse(t *testing.T) {
 				name:     "fundamental bottom",
 				text:     "bottom",
 				expected: []ast.Node{ast.BottomLiteralExpr{Token: tokens.New(tokentype.BOTTOM, "bottom", 0, 0)}},
+			},
+			{
+				name:     "fundamental boolean 1",
+				text:     "true",
+				expected: []ast.Node{ast.BooleanLiteralExpr{Value: tokens.New(tokentype.TRUE, "true", 0, 0)}},
+			},
+			{
+				name:     "fundamental boolean 2",
+				text:     "false",
+				expected: []ast.Node{ast.BooleanLiteralExpr{Value: tokens.New(tokentype.FALSE, "false", 0, 0)}},
 			},
 			{
 				name: "unary minus",

@@ -261,6 +261,11 @@ func (p *parser) fundamental() (ast.Expr, error) {
 		return ast.IdentifierExpr{Name: s}, nil
 	}
 
+	if p.is(tokentype.TRUE, tokentype.FALSE) {
+		b, _ := p.eat(tokentype.TRUE, tokentype.FALSE)
+		return ast.BooleanLiteralExpr{Value: b}, nil
+	}
+
 	t := p.tokens[p.i]
 	return nil, errors.ParseError{Msg: fmt.Sprintf("Malformed expression at %d: %d", t.Position.Row, t.Position.Col)}
 }

@@ -41,6 +41,14 @@ func TestAnalyze(t *testing.T) {
 				name: "binary expressions",
 				text: "1 + 3",
 			},
+			{
+				name: "boolean expressions 1",
+				text: "true",
+			},
+			{
+				name: "boolean expressions 2",
+				text: "false",
+			},
 		}
 
 		for _, e := range table {

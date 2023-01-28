@@ -170,6 +170,10 @@ func (i *interpreter) VisitBottomLitExpr(e ast.BottomLiteralExpr) (interface{}, 
 	return value.VBottom{}, nil
 }
 
+func (i *interpreter) VisitBooleanLitExpr(e ast.BooleanLiteralExpr) (interface{}, error) {
+	return value.VBoolean{Value: e.Value.Type == tokentype.TRUE}, nil
+}
+
 func (i *interpreter) VisitIdentifierExpr(e ast.IdentifierExpr) (interface{}, error) {
 	return i.env.Get(e.Name.Lexeme), nil
 }

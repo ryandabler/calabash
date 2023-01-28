@@ -5,6 +5,7 @@ type vtype int
 const (
 	num vtype = iota
 	str
+	boolean
 	bottom
 )
 
@@ -32,4 +33,12 @@ type VBottom struct{}
 
 func (v VBottom) v() vtype {
 	return bottom
+}
+
+type VBoolean struct {
+	Value bool
+}
+
+func (v VBoolean) v() vtype {
+	return boolean
 }

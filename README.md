@@ -58,5 +58,7 @@ FUNDAMENTAL
     | STRING
     | '(' EXPRESSION ')'
     | 'bottom'
+    | 'true'
+    | 'false'
     ;
 ```

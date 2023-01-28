@@ -66,6 +66,10 @@ func (a *analyzer) VisitBottomLitExpr(e ast.BottomLiteralExpr) (interface{}, err
 	return nil, nil
 }
 
+func (a *analyzer) VisitBooleanLitExpr(e ast.BooleanLiteralExpr) (interface{}, error) {
+	return nil, nil
+}
+
 func (a *analyzer) VisitIdentifierExpr(e ast.IdentifierExpr) (interface{}, error) {
 	if !a.env.Has(e.Name.Lexeme) {
 		return nil, errors.StaticError{Msg: "Cannot reference an undeclared identifier."}

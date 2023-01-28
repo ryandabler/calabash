@@ -10,6 +10,7 @@ const (
 	numeric_lit_expr
 	string_lit_expr
 	bottom_lit_expr
+	boolean_lit_expr
 	identifer_expr
 	grouping_expr
 	var_decl_stmt
@@ -85,6 +86,18 @@ func (e BottomLiteralExpr) e() nodetype {
 
 func (e BottomLiteralExpr) n() nodetype {
 	return bottom_lit_expr
+}
+
+type BooleanLiteralExpr struct {
+	Value tokens.Token
+}
+
+func (e BooleanLiteralExpr) e() nodetype {
+	return boolean_lit_expr
+}
+
+func (e BooleanLiteralExpr) n() nodetype {
+	return boolean_lit_expr
 }
 
 type IdentifierExpr struct {
