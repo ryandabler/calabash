@@ -50,100 +50,70 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 
 	op := e.Operator.Type
 
-	switch op {
-	case tokentype.PLUS:
-		{
-			ln, okl := l.(value.VNumber)
-			rn, okr := r.(value.VNumber)
+	// The '+' operator is overloaded for different data types. The left and right
+	// sides must be of the same type but they could be many different types.
+	if op == tokentype.PLUS {
+		ln, okl := l.(value.VNumber)
+		rn, okr := r.(value.VNumber)
 
-			if okl && okr {
-				val := value.VNumber{
-					Value: ln.Value + rn.Value,
-				}
-
-				return val, nil
+		if okl && okr {
+			val := value.VNumber{
+				Value: ln.Value + rn.Value,
 			}
 
-			ls, okl := l.(value.VString)
-			rs, okr := r.(value.VString)
-
-			if okl && okr {
-				val := value.VString{
-					Value: ls.Value + rs.Value,
-				}
-
-				return val, nil
-			}
-
-			return nil, errors.RuntimeError{Msg: "The types for binary '+' are not the same"}
+			return val, nil
 		}
 
-	case tokentype.MINUS:
-		{
-			ln, okl := l.(value.VNumber)
-			rn, okr := r.(value.VNumber)
+		ls, okl := l.(value.VString)
+		rs, okr := r.(value.VString)
 
-			if !okl || !okr {
-				return nil, errors.RuntimeError{Msg: "Binary '-' can only be performed on numbers"}
+		if okl && okr {
+			val := value.VString{
+				Value: ls.Value + rs.Value,
 			}
 
-			val := value.VNumber{
+			return val, nil
+		}
+
+		return nil, errors.RuntimeError{Msg: "The types for binary '+' are not the same"}
+	}
+
+	if isNumericOp(op) && areNumbers(l, r) {
+		ln, _ := l.(value.VNumber)
+		rn, _ := r.(value.VNumber)
+		val := value.VNumber{}
+
+		switch op {
+		case tokentype.MINUS:
+			val = value.VNumber{
 				Value: ln.Value - rn.Value,
 			}
 
-			return val, nil
-		}
-
-	case tokentype.ASTERISK:
-		{
-			ln, okl := l.(value.VNumber)
-			rn, okr := r.(value.VNumber)
-
-			if !okl || !okr {
-				return nil, errors.RuntimeError{Msg: "Binary '*' can only be performed on numbers"}
-			}
-
-			val := value.VNumber{
+		case tokentype.ASTERISK:
+			val = value.VNumber{
 				Value: ln.Value * rn.Value,
 			}
 
-			return val, nil
-		}
-
-	case tokentype.SLASH:
-		{
-			ln, okl := l.(value.VNumber)
-			rn, okr := r.(value.VNumber)
-
-			if !okl || !okr {
-				return nil, errors.RuntimeError{Msg: "Binary '/' can only be performed on numbers"}
-			}
-
-			val := value.VNumber{
+		case tokentype.SLASH:
+			val = value.VNumber{
 				Value: ln.Value / rn.Value,
 			}
 
-			return val, nil
-		}
-
-	case tokentype.ASTERISK_ASTERISK:
-		{
-			ln, okl := l.(value.VNumber)
-			rn, okr := r.(value.VNumber)
-
-			if !okl || !okr {
-				return nil, errors.RuntimeError{Msg: "Binary '**' can only be performed on numbers"}
-			}
-
-			val := value.VNumber{
+		case tokentype.ASTERISK_ASTERISK:
+			val = value.VNumber{
 				Value: math.Pow(ln.Value, rn.Value),
 			}
 
-			return val, nil
 		}
+
+		return val, nil
 	}
 
-	return nil, errors.RuntimeError{Msg: fmt.Sprintf("The only supported binary operators are '+': received %q", e.Operator.Lexeme)}
+	if isNumericOp(op) {
+		return nil, errors.RuntimeError{Msg: fmt.Sprintf("Received a non-numeric value for numeric binary operator %q", e.Operator.Lexeme)}
+	}
+
+	return nil, errors.RuntimeError{Msg: fmt.Sprintf("Received unsupported binary operator %q", e.Operator.Lexeme)}
 }
 
 func (i *interpreter) VisitNumLitExpr(e ast.NumericLiteralExpr) (interface{}, error) {
