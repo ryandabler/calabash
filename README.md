@@ -30,7 +30,11 @@ MULTI_EXPR
     ;
 
 EXPRESSION
-    : ADDITION
+    : COMPARISON
+    ;
+
+COMPARISON
+    : ADDITION [('<' | '<=' | '>' | '>=') ADDITION]?
     ;
 
 ADDITION

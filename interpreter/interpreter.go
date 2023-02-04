@@ -81,7 +81,7 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 	if isNumericOp(op) && areNumbers(l, r) {
 		ln, _ := l.(value.VNumber)
 		rn, _ := r.(value.VNumber)
-		val := value.VNumber{}
+		var val value.Value
 
 		switch op {
 		case tokentype.MINUS:
@@ -104,6 +104,17 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 				Value: math.Pow(ln.Value, rn.Value),
 			}
 
+		case tokentype.GREAT:
+			val = value.VBoolean{Value: ln.Value > rn.Value}
+
+		case tokentype.GREAT_EQUAL:
+			val = value.VBoolean{Value: ln.Value >= rn.Value}
+
+		case tokentype.LESS:
+			val = value.VBoolean{Value: ln.Value < rn.Value}
+
+		case tokentype.LESS_EQUAL:
+			val = value.VBoolean{Value: ln.Value <= rn.Value}
 		}
 
 		return val, nil

@@ -126,7 +126,32 @@ func (p *parser) assignment() (ast.Node, error) {
 }
 
 func (p *parser) expression() (ast.Expr, error) {
-	return p.addition()
+	return p.comparison()
+}
+
+func (p *parser) comparison() (ast.Expr, error) {
+	left, err := p.addition()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if p.is(comparisonTokens...) {
+		op, _ := p.eat(comparisonTokens...)
+		right, err := p.addition()
+
+		if err != nil {
+			return nil, err
+		}
+
+		return ast.BinaryExpr{
+			Left:     left,
+			Right:    right,
+			Operator: op,
+		}, nil
+	}
+
+	return left, nil
 }
 
 func (p *parser) addition() (ast.Expr, error) {

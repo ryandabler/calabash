@@ -10,6 +10,10 @@ var numericOps map[tokentype.Tokentype]interface{} = map[tokentype.Tokentype]int
 	tokentype.ASTERISK:          nil,
 	tokentype.SLASH:             nil,
 	tokentype.ASTERISK_ASTERISK: nil,
+	tokentype.LESS:              nil,
+	tokentype.LESS_EQUAL:        nil,
+	tokentype.GREAT:             nil,
+	tokentype.GREAT_EQUAL:       nil,
 }
 
 func isNumericOp(op tokentype.Tokentype) bool {
