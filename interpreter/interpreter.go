@@ -50,6 +50,23 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 
 	op := e.Operator.Type
 
+	if op == tokentype.EQUAL_EQUAL || op == tokentype.BANG_EQUAL {
+		l, okl := l.(value.Value)
+		r, okr := r.(value.Value)
+
+		if !okl || !okr {
+			return nil, errors.RuntimeError{Msg: "Can not check equality of non-values"}
+		}
+
+		b := l.Hash() == r.Hash()
+
+		if op == tokentype.BANG_EQUAL {
+			b = !b
+		}
+
+		return value.VBoolean{Value: b}, nil
+	}
+
 	// The '+' operator is overloaded for different data types. The left and right
 	// sides must be of the same type but they could be many different types.
 	if op == tokentype.PLUS {

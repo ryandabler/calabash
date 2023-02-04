@@ -30,7 +30,11 @@ MULTI_EXPR
     ;
 
 EXPRESSION
-    : COMPARISON
+    : EQUALITY
+    ;
+
+EQUALITY
+    : COMPARISON [('==' | '!=') COMPARISON]?
     ;
 
 COMPARISON

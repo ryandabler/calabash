@@ -283,6 +283,29 @@ func TestParse(t *testing.T) {
 					},
 				},
 			},
+			{
+				name: "equality comparison 1",
+				text: "1 == 2",
+				expected: []ast.Node{
+					ast.BinaryExpr{
+						Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+						Operator: tokens.New(tokentype.EQUAL_EQUAL, "==", 0, 0),
+					},
+				},
+			},
+			{
+				name: "equality comparison 2",
+				text: "1 != 2",
+				expected: []ast.Node{
+					ast.BinaryExpr{
+						Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+						Operator: tokens.New(tokentype.BANG_EQUAL, "!=", 0, 0),
+					},
+				},
+			},
+			{
 				name: "variable declaration w/o inits",
 				text: "let a, b;",
 				expected: []ast.Node{
@@ -422,32 +445,36 @@ func TestParse(t *testing.T) {
 	t.Run("precedence", func(t *testing.T) {
 		expected := []ast.Node{
 			ast.BinaryExpr{
-				Left: ast.BinaryExpr{
-					Left: ast.UnaryExpr{
-						Operator: tokens.New(tokentype.MINUS, "-", 0, 0),
-						Expr:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+				Left: ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
+				Right: ast.BinaryExpr{
+					Left: ast.BinaryExpr{
+						Left: ast.UnaryExpr{
+							Operator: tokens.New(tokentype.MINUS, "-", 0, 0),
+							Expr:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+						},
+						Right: ast.BinaryExpr{
+							Left: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+							Right: ast.BinaryExpr{
+								Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "3", 0, 0)},
+								Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
+								Operator: tokens.New(tokentype.ASTERISK_ASTERISK, "**", 0, 0),
+							},
+							Operator: tokens.New(tokentype.ASTERISK, "*", 0, 0),
+						},
+						Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
 					},
 					Right: ast.BinaryExpr{
-						Left: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
-						Right: ast.BinaryExpr{
-							Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "3", 0, 0)},
-							Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
-							Operator: tokens.New(tokentype.ASTERISK_ASTERISK, "**", 0, 0),
-						},
-						Operator: tokens.New(tokentype.ASTERISK, "*", 0, 0),
+						Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+						Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "5", 0, 0)},
+						Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
 					},
-					Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
+					Operator: tokens.New(tokentype.LESS, "<", 0, 0),
 				},
-				Right: ast.BinaryExpr{
-					Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
-					Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "5", 0, 0)},
-					Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
-				},
-				Operator: tokens.New(tokentype.LESS, "<", 0, 0),
+				Operator: tokens.New(tokentype.EQUAL_EQUAL, "==", 0, 0),
 			},
 		}
 
-		ts, err := scanner.New().Read("-1 + 2 * 3 ** 4 < 1 + 5")
+		ts, err := scanner.New().Read("a == -1 + 2 * 3 ** 4 < 1 + 5")
 
 		if err != nil {
 			t.Error("got error unexpectedly during scanning")
@@ -480,6 +507,7 @@ func TestParse(t *testing.T) {
 			{name: "malformed addition expression 1", text: "1 +"},
 			{name: "malformed addition expression 2", text: "1 + -"},
 			{name: "malformed comparison expression", text: "1 < *"},
+			{name: "malformed equality expression", text: "1 == +"},
 			{name: "malformed variable declaration 1", text: "let 'ab';"},
 			{name: "malformed variable declaration 2", text: "let ab"},
 			{name: "malformed variable declaration 3", text: "let a = 4 +"},

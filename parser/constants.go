@@ -10,3 +10,8 @@ var comparisonTokens []tokentype.Tokentype = []tokentype.Tokentype{
 	tokentype.LESS,
 	tokentype.LESS_EQUAL,
 }
+
+var equalityTokens []tokentype.Tokentype = []tokentype.Tokentype{
+	tokentype.EQUAL_EQUAL,
+	tokentype.BANG_EQUAL,
+}
