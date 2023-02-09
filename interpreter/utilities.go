@@ -21,9 +21,25 @@ func isNumericOp(op tokentype.Tokentype) bool {
 	return ok
 }
 
+func isBooleanOp(op tokentype.Tokentype) bool {
+	return op == tokentype.AMPERSAND_AMPERSAND || op == tokentype.STROKE_STROKE
+}
+
 func areNumbers(ns ...interface{}) bool {
 	for _, n := range ns {
 		_, ok := n.(value.VNumber)
+
+		if !ok {
+			return false
+		}
+	}
+
+	return true
+}
+
+func areBools(bs ...interface{}) bool {
+	for _, n := range bs {
+		_, ok := n.(value.VBoolean)
 
 		if !ok {
 			return false

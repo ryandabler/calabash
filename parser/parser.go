@@ -126,7 +126,57 @@ func (p *parser) assignment() (ast.Node, error) {
 }
 
 func (p *parser) expression() (ast.Expr, error) {
-	return p.equality()
+	return p.booleanOr()
+}
+
+func (p *parser) booleanOr() (ast.Expr, error) {
+	left, err := p.booleanAnd()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for p.is(tokentype.STROKE_STROKE) {
+		op, _ := p.eat(tokentype.STROKE_STROKE)
+		right, err := p.booleanAnd()
+
+		if err != nil {
+			return nil, err
+		}
+
+		left = ast.BinaryExpr{
+			Left:     left,
+			Right:    right,
+			Operator: op,
+		}
+	}
+
+	return left, nil
+}
+
+func (p *parser) booleanAnd() (ast.Expr, error) {
+	left, err := p.equality()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for p.is(tokentype.AMPERSAND_AMPERSAND) {
+		op, _ := p.eat(tokentype.AMPERSAND_AMPERSAND)
+		right, err := p.equality()
+
+		if err != nil {
+			return nil, err
+		}
+
+		left = ast.BinaryExpr{
+			Left:     left,
+			Right:    right,
+			Operator: op,
+		}
+	}
+
+	return left, nil
 }
 
 func (p *parser) equality() (ast.Expr, error) {

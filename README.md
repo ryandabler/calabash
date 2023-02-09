@@ -30,7 +30,17 @@ MULTI_EXPR
     ;
 
 EXPRESSION
-    : EQUALITY
+    : BOOLEAN_OR
+    ;
+
+BOOLEAN_OR
+    : BOOLEAN_OR '||' BOOLEAN_AND
+    | BOOLEAN_AND
+    ;
+
+BOOLEAN_AND
+    : BOOLEAN_AND '&&' EQUALITY
+    | EQUALITY
     ;
 
 EQUALITY

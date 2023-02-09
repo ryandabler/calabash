@@ -67,6 +67,23 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 		return value.VBoolean{Value: b}, nil
 	}
 
+	if isBooleanOp(op) && areBools(l, r) {
+		lb, _ := l.(value.VBoolean)
+		rb, _ := r.(value.VBoolean)
+
+		if op == tokentype.AMPERSAND_AMPERSAND {
+			return value.VBoolean{Value: lb.Value && rb.Value}, nil
+		}
+
+		if op == tokentype.STROKE_STROKE {
+			return value.VBoolean{Value: lb.Value || rb.Value}, nil
+		}
+	}
+
+	if isBooleanOp(op) {
+		return nil, errors.RuntimeError{Msg: "Both operands must be boolean values to use with boolean operators."}
+	}
+
 	// The '+' operator is overloaded for different data types. The left and right
 	// sides must be of the same type but they could be many different types.
 	if op == tokentype.PLUS {
