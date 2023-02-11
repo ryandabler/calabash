@@ -66,19 +66,10 @@ func (p *parser) program() ([]ast.Node, error) {
 
 	for !p.atEnd() {
 		if p.is(tokentype.LET) {
-			p.eat(tokentype.LET)
-
-			n, err := p.assignment()
+			n, err := p.variableDecl()
 
 			if err != nil {
 				return []ast.Node{}, err
-			}
-
-			_, err = p.eat(tokentype.SEMICOLON)
-
-			if err != nil {
-				n := p.current()
-				return []ast.Node{}, errors.ParseError{Msg: fmt.Sprintf("Missing semicolon at %d:%d", n.Position.Row, n.Position.Col)}
 			}
 
 			ts = append(ts, n)
@@ -97,7 +88,13 @@ func (p *parser) program() ([]ast.Node, error) {
 	return ts, nil
 }
 
-func (p *parser) assignment() (ast.Node, error) {
+func (p *parser) variableDecl() (ast.Node, error) {
+	_, err := p.eat(tokentype.LET)
+
+	if err != nil {
+		return nil, err
+	}
+
 	names, err := p.assignmentNames()
 
 	if err != nil {
@@ -106,6 +103,8 @@ func (p *parser) assignment() (ast.Node, error) {
 
 	// No initializers are specified for this assignment
 	if p.is(tokentype.SEMICOLON) {
+		p.eat(tokentype.SEMICOLON)
+
 		return ast.VarDeclStmt{Names: names, Values: []ast.Expr{}}, nil
 	}
 
@@ -120,6 +119,13 @@ func (p *parser) assignment() (ast.Node, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	_, err = p.eat(tokentype.SEMICOLON)
+
+	if err != nil {
+		n := p.current()
+		return nil, errors.ParseError{Msg: fmt.Sprintf("Missing semicolon at %d:%d", n.Position.Row, n.Position.Col)}
 	}
 
 	return ast.VarDeclStmt{Names: names, Values: inits}, nil

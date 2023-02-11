@@ -8,14 +8,14 @@ The grammar for Calabash is:
 
 ```ebnf
 PROGRAM
-    : (DECLARATION | EXPRESSION)*
+    : (STATEMENT | EXPRESSION)*
     ;
 
-DECLARATION
-    : ASSIGNMENT
+STATEMENT
+    : VARIABLE_DECLARATION
     ;
 
-ASSIGNMENT
+VARIABLE_DECLARATION
     : 'let' MULTI_IDENT '=' MULTI_EXPR ';'
     ;
 
