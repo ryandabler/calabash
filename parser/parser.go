@@ -53,6 +53,16 @@ func (p *parser) is(ts ...tokentype.Tokentype) bool {
 	return false
 }
 
+func (p *parser) isThenEat(ts ...tokentype.Tokentype) bool {
+	is := p.is(ts...)
+
+	if is {
+		p.eat(ts...)
+	}
+
+	return is
+}
+
 func (p *parser) next() {
 	p.i++
 }
@@ -65,7 +75,7 @@ func (p *parser) program() ([]ast.Node, error) {
 	ts := []ast.Node{}
 
 	for !p.atEnd() {
-		if p.is(tokentype.LET) {
+		if p.isThenEat(tokentype.LET) {
 			n, err := p.variableDecl()
 
 			if err != nil {
@@ -89,12 +99,6 @@ func (p *parser) program() ([]ast.Node, error) {
 }
 
 func (p *parser) variableDecl() (ast.Node, error) {
-	_, err := p.eat(tokentype.LET)
-
-	if err != nil {
-		return nil, err
-	}
-
 	names, err := p.assignmentNames()
 
 	if err != nil {
@@ -102,9 +106,7 @@ func (p *parser) variableDecl() (ast.Node, error) {
 	}
 
 	// No initializers are specified for this assignment
-	if p.is(tokentype.SEMICOLON) {
-		p.eat(tokentype.SEMICOLON)
-
+	if p.isThenEat(tokentype.SEMICOLON) {
 		return ast.VarDeclStmt{Names: names, Values: []ast.Expr{}}, nil
 	}
 
@@ -330,8 +332,7 @@ func (p *parser) fundamental() (ast.Expr, error) {
 		return nil, errors.ParseError{Msg: "Unexpected end of input"}
 	}
 
-	if p.is(tokentype.LEFT_PAREN) {
-		p.eat(tokentype.LEFT_PAREN)
+	if p.isThenEat(tokentype.LEFT_PAREN) {
 		e, err := p.expression()
 
 		if err != nil {

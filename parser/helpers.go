@@ -16,9 +16,7 @@ func (p *parser) assignmentNames() ([]tokens.Token, error) {
 
 	ns = append(ns, ident)
 
-	for p.is(tokentype.COMMA) {
-		p.eat(tokentype.COMMA)
-
+	for p.isThenEat(tokentype.COMMA) {
 		ident, err := p.eat(tokentype.IDENTIFIER)
 
 		if err != nil {
@@ -41,9 +39,7 @@ func (p *parser) commaExpressions() ([]ast.Expr, error) {
 
 	es = append(es, e)
 
-	for p.is(tokentype.COMMA) {
-		p.eat(tokentype.COMMA)
-
+	for p.isThenEat(tokentype.COMMA) {
 		e, err := p.expression()
 
 		if err != nil {
