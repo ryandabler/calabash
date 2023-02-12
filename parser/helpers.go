@@ -6,7 +6,7 @@ import (
 	"calabash/lexer/tokens"
 )
 
-func (p *parser) assignmentNames() ([]tokens.Token, error) {
+func (p *parser) varDeclarationNames() ([]tokens.Token, error) {
 	ident, err := p.eat(tokentype.IDENTIFIER)
 	ns := []tokens.Token{}
 

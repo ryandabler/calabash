@@ -99,7 +99,7 @@ func (p *parser) program() ([]ast.Node, error) {
 }
 
 func (p *parser) variableDecl() (ast.Node, error) {
-	names, err := p.assignmentNames()
+	names, err := p.varDeclarationNames()
 
 	if err != nil {
 		return nil, err
