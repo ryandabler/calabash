@@ -92,6 +92,19 @@ func (p *parser) program() ([]ast.Node, error) {
 			return []ast.Node{}, err
 		}
 
+		// If the next token is a comma or equals sign, we are processing an
+		// assignment statement and not an expression.
+		if p.is(tokentype.COMMA, tokentype.EQUAL) {
+			n, err := p.assignment(expr)
+
+			if err != nil {
+				return nil, err
+			}
+
+			ts = append(ts, n)
+			continue
+		}
+
 		ts = append(ts, expr)
 	}
 
@@ -131,6 +144,50 @@ func (p *parser) variableDecl() (ast.Node, error) {
 	}
 
 	return ast.VarDeclStmt{Names: names, Values: inits}, nil
+}
+
+func (p *parser) assignment(fst ast.Expr) (ast.Node, error) {
+	ident, ok := fst.(ast.IdentifierExpr)
+
+	if !ok {
+		return nil, errors.ParseError{Msg: "Expected identifier for first element of assignment statement"}
+	}
+
+	ns := []tokens.Token{ident.Name}
+
+	// Obtain the list of identifiers being reassigned
+	for p.isThenEat(tokentype.COMMA) {
+		n, err := p.eat(tokentype.IDENTIFIER)
+
+		if err != nil {
+			return nil, err
+		}
+
+		ns = append(ns, n)
+	}
+
+	// Skip past the equals sign
+	_, err := p.eat(tokentype.EQUAL)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the list of expressions being bound to the above identifiers
+	exprs, err := p.commaExpressions()
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Skip semicolon
+	_, err = p.eat(tokentype.SEMICOLON)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.AssignmentStmt{Names: ns, Values: exprs}, nil
 }
 
 func (p *parser) expression() (ast.Expr, error) {

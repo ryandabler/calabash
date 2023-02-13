@@ -108,6 +108,25 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 		return tA8.Value.Type == tB8.Value.Type
 	}
 
+	tA9, okA := a.(ast.AssignmentStmt)
+	tB9, okB := b.(ast.AssignmentStmt)
+
+	if okA && okB {
+		for i, n := range tA9.Names {
+			if n.Lexeme != tB9.Names[i].Lexeme {
+				return false
+			}
+		}
+
+		for i, n := range tA9.Values {
+			if !nodesAreEqual(n, tB9.Values[i]) {
+				return false
+			}
+		}
+
+		return true
+	}
+
 	return false
 }
 
@@ -350,6 +369,36 @@ func TestParse(t *testing.T) {
 					},
 				},
 			},
+			{
+				name: "assignment expression w/ one entry",
+				text: "a = 1;",
+				expected: []ast.Node{
+					ast.AssignmentStmt{
+						Names:  []tokens.Token{tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
+						Values: []ast.Expr{ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)}},
+					},
+				},
+			},
+			{
+				name: "assignment expression w/ multiple entries",
+				text: "a, b = 1, 2 + 5;",
+				expected: []ast.Node{
+					ast.AssignmentStmt{
+						Names: []tokens.Token{
+							tokens.New(tokentype.IDENTIFIER, "a", 0, 0),
+							tokens.New(tokentype.IDENTIFIER, "b", 0, 0),
+						},
+						Values: []ast.Expr{
+							ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							ast.BinaryExpr{
+								Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+								Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "5", 0, 0)},
+								Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
+							},
+						},
+					},
+				},
+			},
 		}
 
 		for _, e := range table {
@@ -576,6 +625,11 @@ func TestParse(t *testing.T) {
 			{name: "malformed variable declaration 4", text: "let a = 'b'"},
 			{name: "malformed variable declaration 5", text: "let a, 1 = 'b'"},
 			{name: "malformed variable declaration 6", text: "let a, b = 1, ;"},
+			{name: "malformed assignment statemement 1", text: "a = 1 +"},
+			{name: "malformed assignment statemement 2", text: "1 = 1"},
+			{name: "malformed assignment statemement 3", text: "a, 2 = 1 +"},
+			{name: "malformed assignment statemement 4", text: "a, b"},
+			{name: "malformed assignment statemement 5", text: "a = 1 + 2"},
 		}
 
 		for _, e := range table {

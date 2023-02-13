@@ -14,6 +14,7 @@ const (
 	identifer_expr
 	grouping_expr
 	var_decl_stmt
+	assign_stmt
 )
 
 type Node interface {
@@ -131,4 +132,13 @@ type VarDeclStmt struct {
 
 func (s VarDeclStmt) n() nodetype {
 	return var_decl_stmt
+}
+
+type AssignmentStmt struct {
+	Names  []tokens.Token
+	Values []Expr
+}
+
+func (s AssignmentStmt) n() nodetype {
+	return assign_stmt
 }

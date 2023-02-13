@@ -49,6 +49,11 @@ func TestAnalyze(t *testing.T) {
 				name: "boolean expressions 2",
 				text: "false",
 			},
+			{
+			{
+				name: "assignment statement",
+				text: "let a; a = 1;",
+			},
 		}
 
 		for _, e := range table {
@@ -96,6 +101,18 @@ func TestAnalyze(t *testing.T) {
 			{
 				name: "right-side binary error",
 				text: "2 - a",
+			},
+			{
+				name: "assignment name/value quantity mismatch",
+				text: "let a, b; a, b = 1;",
+			},
+			{
+				name: "assignment with undeclared variable",
+				text: "a = 1;",
+			},
+			{
+				name: "assignment with undeclared identifier expression",
+				text: "let a; a = b;",
 			},
 		}
 

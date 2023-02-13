@@ -250,6 +250,26 @@ func (i *interpreter) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {
 	return nil, nil
 }
 
+func (i *interpreter) VisitAssignStmt(s ast.AssignmentStmt) (interface{}, error) {
+	for idx, n := range s.Names {
+		v, err := i.evalNode(s.Values[idx])
+
+		if err != nil {
+			return nil, err
+		}
+
+		val, ok := v.(value.Value)
+
+		if !ok {
+			return nil, errors.RuntimeError{Msg: "Could not obtain a value for assignment."}
+		}
+
+		i.env.Set(n.Lexeme, val)
+	}
+
+	return nil, nil
+}
+
 func New() *interpreter {
 	return &interpreter{
 		env: environment.New(),

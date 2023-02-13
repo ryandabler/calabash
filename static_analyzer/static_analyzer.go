@@ -91,6 +91,26 @@ func (a *analyzer) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {
 		a.env.Add(n.Lexeme, nil)
 	}
 
+func (a *analyzer) VisitAssignStmt(s ast.AssignmentStmt) (interface{}, error) {
+	if len(s.Names) != len(s.Values) {
+		msg := fmt.Sprintf("Expected to have %d expressions--received %d", len(s.Names), len(s.Values))
+		return nil, errors.StaticError{Msg: msg}
+	}
+
+	for _, n := range s.Names {
+		if !a.env.Has(n.Lexeme) {
+			return nil, errors.StaticError{Msg: fmt.Sprintf("Cannot assign to undeclared variable %q", n.Lexeme)}
+		}
+	}
+
+	for _, v := range s.Values {
+		err := a.analyzeNode(v)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return nil, nil
 }
 
