@@ -30,10 +30,6 @@ func TestAnalyze(t *testing.T) {
 				text: "-1",
 			},
 			{
-				name: "identifier expressions",
-				text: "let a; a",
-			},
-			{
 				name: "grouping expressions",
 				text: "('abc')",
 			},
@@ -50,6 +46,13 @@ func TestAnalyze(t *testing.T) {
 				text: "false",
 			},
 			{
+				name: "variable declaration",
+				text: "let a;",
+			},
+			{
+				name: "identifier expressions",
+				text: "let a; a",
+			},
 			{
 				name: "assignment statement",
 				text: "let a; a = 1;",
