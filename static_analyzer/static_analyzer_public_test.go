@@ -106,6 +106,10 @@ func TestAnalyze(t *testing.T) {
 				text: "2 - a",
 			},
 			{
+				name: "var declaration with undeclared identifier expression",
+				text: "let a = b;",
+			},
+			{
 				name: "assignment name/value quantity mismatch",
 				text: "let a, b; a, b = 1;",
 			},
