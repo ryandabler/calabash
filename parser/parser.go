@@ -75,40 +75,48 @@ func (p *parser) program() ([]ast.Node, error) {
 	ts := []ast.Node{}
 
 	for !p.atEnd() {
-		if p.isThenEat(tokentype.LET) {
-			n, err := p.variableDecl()
-
-			if err != nil {
-				return []ast.Node{}, err
-			}
-
-			ts = append(ts, n)
-			continue
-		}
-
-		expr, err := p.expression()
+		t, err := p.stmtOrExpr()
 
 		if err != nil {
 			return []ast.Node{}, err
 		}
 
-		// If the next token is a comma or equals sign, we are processing an
-		// assignment statement and not an expression.
-		if p.is(tokentype.COMMA, tokentype.EQUAL) {
-			n, err := p.assignment(expr)
-
-			if err != nil {
-				return nil, err
-			}
-
-			ts = append(ts, n)
-			continue
-		}
-
-		ts = append(ts, expr)
+		ts = append(ts, t)
 	}
 
 	return ts, nil
+}
+
+func (p *parser) stmtOrExpr() (ast.Node, error) {
+	if p.isThenEat(tokentype.LET) {
+		n, err := p.variableDecl()
+
+		if err != nil {
+			return nil, err
+		}
+
+		return n, nil
+	}
+
+	expr, err := p.expression()
+
+	if err != nil {
+		return nil, err
+	}
+
+	// If the next token is a comma or equals sign, we are processing an
+	// assignment statement and not an expression.
+	if p.is(tokentype.COMMA, tokentype.EQUAL) {
+		n, err := p.assignment(expr)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return n, nil
+	}
+
+	return expr, nil
 }
 
 func (p *parser) variableDecl() (ast.Node, error) {
