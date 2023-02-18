@@ -84,7 +84,7 @@ func (a *analyzer) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {
 	}
 
 	for _, n := range s.Names {
-		if a.env.Has(n.Lexeme) {
+		if a.env.HasDirectly(n.Lexeme) {
 			return nil, errors.StaticError{Msg: fmt.Sprintf("Cannot redeclare variable %q", n.Lexeme)}
 		}
 
@@ -127,6 +127,6 @@ func (a *analyzer) VisitAssignStmt(s ast.AssignmentStmt) (interface{}, error) {
 
 func New() *analyzer {
 	return &analyzer{
-		env: environment.New(),
+		env: environment.New(nil),
 	}
 }

@@ -272,6 +272,6 @@ func (i *interpreter) VisitAssignStmt(s ast.AssignmentStmt) (interface{}, error)
 
 func New() *interpreter {
 	return &interpreter{
-		env: environment.New(),
+		env: environment.New(nil),
 	}
 }
