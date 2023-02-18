@@ -34,8 +34,8 @@ BLOCK_STATEMENT
     ;
 
 MULTI_IDENT
-    : MULTI_IDENT ',' IDENTIFIER
-    | IDENTIFIER
+    : MULTI_IDENT ',' identifier
+    | identifier
     ;
 
 MULTI_EXPR
@@ -86,8 +86,8 @@ UNARY
     ;
 
 FUNDAMENTAL
-    : NUMBER
-    | STRING
+    : number
+    | string
     | '(' EXPRESSION ')'
     | 'bottom'
     | 'true'
