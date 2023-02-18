@@ -57,6 +57,30 @@ func TestAnalyze(t *testing.T) {
 				name: "assignment statement",
 				text: "let a; a = 1;",
 			},
+			{
+				name: "if statement with only condition",
+				text: "let a; if a == 4 {}",
+			},
+			{
+				name: "if statement with declaration",
+				text: "if let a; a == 4 {}",
+			},
+			{
+				name: "if statement with shadowing declaration",
+				text: "let a; if let a; a == 4 {}",
+			},
+			{
+				name: "if statement with declaration and shadowing declaration in `then` block",
+				text: "if let a; a == 4 { let a; }",
+			},
+			{
+				name: "if statement with else...if block",
+				text: "let a; if a == 4 {} else if a == 3 {}",
+			},
+			{
+				name: "if statement with shadowing else...if block",
+				text: "if let a; a == 4 {} else if let a; a == 3 {}",
+			},
 		}
 
 		for _, e := range table {
@@ -120,6 +144,22 @@ func TestAnalyze(t *testing.T) {
 			{
 				name: "assignment with undeclared identifier expression",
 				text: "let a; a = b;",
+			},
+			{
+				name: "if statement with undeclared identifier in variable declaration",
+				text: "if let a = b; a == 3 {}",
+			},
+			{
+				name: "if statement with undeclared identifier in condition",
+				text: "if a == 3 {}",
+			},
+			{
+				name: "if statement with multiple redeclarations in `then` block",
+				text: "if let a; a == 3 { let a, a; }",
+			},
+			{
+				name: "if statement with undeclared identifier in `else` block",
+				text: "if let a; a == 3 {} else { b }",
 			},
 		}
 

@@ -16,6 +16,8 @@ type visitor[T any] interface {
 	VisitIdentifierExpr(e ast.IdentifierExpr) (T, error)
 	VisitVarDeclStmt(s ast.VarDeclStmt) (T, error)
 	VisitAssignStmt(s ast.AssignmentStmt) (T, error)
+	VisitIfStmt(s ast.IfStmt) (T, error)
+	VisitBlock(s ast.Block) (T, error)
 }
 
 func Accept[T any](n ast.Node, v visitor[T]) (T, error) {
@@ -59,6 +61,14 @@ func Accept[T any](n ast.Node, v visitor[T]) (T, error) {
 
 	if n, ok := n.(ast.AssignmentStmt); ok {
 		return v.VisitAssignStmt(n)
+	}
+
+	if n, ok := n.(ast.IfStmt); ok {
+		return v.VisitIfStmt(n)
+	}
+
+	if n, ok := n.(ast.Block); ok {
+		return v.VisitBlock(n)
 	}
 
 	return empty, errors.New("Supplied node did not match any node type")

@@ -15,6 +15,8 @@ const (
 	grouping_expr
 	var_decl_stmt
 	assign_stmt
+	if_stmt
+	block
 )
 
 type Node interface {
@@ -141,4 +143,23 @@ type AssignmentStmt struct {
 
 func (s AssignmentStmt) n() nodetype {
 	return assign_stmt
+}
+
+type IfStmt struct {
+	Decls     VarDeclStmt
+	Condition Expr
+	Then      Node
+	Else      Node
+}
+
+func (s IfStmt) n() nodetype {
+	return if_stmt
+}
+
+type Block struct {
+	Contents []Node
+}
+
+func (s Block) n() nodetype {
+	return block
 }

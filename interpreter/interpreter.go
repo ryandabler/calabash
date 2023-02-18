@@ -270,6 +270,70 @@ func (i *interpreter) VisitAssignStmt(s ast.AssignmentStmt) (interface{}, error)
 	return nil, nil
 }
 
+func (i *interpreter) VisitIfStmt(s ast.IfStmt) (interface{}, error) {
+	e := environment.New(i.env)
+	i.env = e
+
+	_, err := i.VisitVarDeclStmt(s.Decls)
+
+	if err != nil {
+		return nil, err
+	}
+
+	vCond, err := i.evalNode(s.Condition)
+
+	if err != nil {
+		return nil, err
+	}
+
+	cond, ok := vCond.(value.VBoolean)
+
+	if !ok {
+		return nil, errors.RuntimeError{Msg: "If condition must resolve to a boolean value."}
+	}
+
+	if cond.Value {
+		_, err = i.evalNode(s.Then)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, nil
+	}
+
+	if s.Else == nil {
+		return nil, nil
+	}
+
+	_, err = i.evalNode(s.Else)
+
+	if err != nil {
+		return nil, err
+	}
+
+	i.env = i.env.Parent
+
+	return nil, nil
+}
+
+func (i *interpreter) VisitBlock(s ast.Block) (interface{}, error) {
+	e := environment.New(i.env)
+	i.env = e
+
+	for _, n := range s.Contents {
+		_, err := i.evalNode(n)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	i.env = i.env.Parent
+
+	return nil, nil
+}
+
 func New() *interpreter {
 	return &interpreter{
 		env: environment.New(nil),

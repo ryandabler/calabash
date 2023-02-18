@@ -98,6 +98,16 @@ func (p *parser) stmtOrExpr() (ast.Node, error) {
 		return n, nil
 	}
 
+	if p.isThenEat(tokentype.IF) {
+		n, err := p.ifStmt()
+
+		if err != nil {
+			return nil, err
+		}
+
+		return n, nil
+	}
+
 	expr, err := p.expression()
 
 	if err != nil {
@@ -196,6 +206,84 @@ func (p *parser) assignment(fst ast.Expr) (ast.Node, error) {
 	}
 
 	return ast.AssignmentStmt{Names: ns, Values: exprs}, nil
+}
+
+func (p *parser) ifStmt() (ast.Node, error) {
+	var varDecl ast.Node
+	var decls ast.VarDeclStmt
+	var err error
+
+	// Obtain option variable declarations
+	if p.isThenEat(tokentype.LET) {
+		varDecl, err = p.variableDecl()
+
+		if err != nil {
+			return nil, err
+		}
+
+		decls, _ = varDecl.(ast.VarDeclStmt)
+	}
+
+	// Obtain boolean condition
+	cond, err := p.expression()
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Obtain `then` portion of statement
+	then, err := p.blockStmt()
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Obtain optional `else` portion
+	var elseBlk ast.Node
+
+	if p.isThenEat(tokentype.ELSE) {
+		if p.isThenEat(tokentype.IF) {
+			elseBlk, err = p.ifStmt()
+
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			elseBlk, err = p.blockStmt()
+
+			if err != nil {
+				return nil, err
+			}
+
+		}
+	}
+
+	return ast.IfStmt{Decls: decls, Condition: cond, Then: then, Else: elseBlk}, nil
+}
+
+func (p *parser) blockStmt() (ast.Node, error) {
+	_, err := p.eat(tokentype.LEFT_BRACE)
+
+	if err != nil {
+		return nil, err
+	}
+
+	stmts := make([]ast.Node, 0)
+
+	for !p.is(tokentype.RIGHT_BRACE) {
+		stmt, err := p.stmtOrExpr()
+
+		if err != nil {
+			return nil, err
+		}
+
+		stmts = append(stmts, stmt)
+	}
+
+	// Due to check above, we don't need to error check this `eat`
+	p.eat(tokentype.RIGHT_BRACE)
+
+	return ast.Block{Contents: stmts}, nil
 }
 
 func (p *parser) expression() (ast.Expr, error) {

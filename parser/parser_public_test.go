@@ -11,6 +11,14 @@ import (
 )
 
 func nodesAreEqual(a ast.Node, b ast.Node) bool {
+	if a == nil && b == nil {
+		return true
+	}
+
+	if a == nil || b == nil {
+		return false
+	}
+
 	kindA := reflect.TypeOf(a).Kind()
 	kindB := reflect.TypeOf(b).Kind()
 
@@ -120,6 +128,33 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 
 		for i, n := range tA9.Values {
 			if !nodesAreEqual(n, tB9.Values[i]) {
+				return false
+			}
+		}
+
+		return true
+	}
+
+	tA10, okA := a.(ast.IfStmt)
+	tB10, okB := b.(ast.IfStmt)
+
+	if okA && okB {
+		return nodesAreEqual(tA10.Decls, tB10.Decls) &&
+			nodesAreEqual(tA10.Condition, tB10.Condition) &&
+			nodesAreEqual(tA10.Then, tB10.Then) &&
+			nodesAreEqual(tA10.Else, tB10.Else)
+	}
+
+	tA11, okA := a.(ast.Block)
+	tB11, okB := b.(ast.Block)
+
+	if okA && okB {
+		if len(tA11.Contents) != len(tB11.Contents) {
+			return false
+		}
+
+		for i, n := range tA11.Contents {
+			if !nodesAreEqual(n, tB11.Contents[i]) {
 				return false
 			}
 		}
@@ -399,6 +434,112 @@ func TestParse(t *testing.T) {
 					},
 				},
 			},
+			{
+				name: "if with just condition",
+				text: "if a == 4 {}",
+				expected: []ast.Node{
+					ast.IfStmt{
+						Decls: ast.VarDeclStmt{},
+						Condition: ast.BinaryExpr{
+							Left:     ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
+							Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
+							Operator: tokens.New(tokentype.EQUAL_EQUAL, "==", 0, 0),
+						},
+						Then: ast.Block{Contents: []ast.Node{}},
+						Else: nil,
+					},
+				},
+			},
+			{
+				name: "if with declaration and condition",
+				text: "if let a = 1; a == 4 {}",
+				expected: []ast.Node{
+					ast.IfStmt{
+						Decls: ast.VarDeclStmt{
+							Names:  []tokens.Token{tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
+							Values: []ast.Expr{ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)}},
+						},
+						Condition: ast.BinaryExpr{
+							Left:     ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
+							Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
+							Operator: tokens.New(tokentype.EQUAL_EQUAL, "==", 0, 0),
+						},
+						Then: ast.Block{Contents: []ast.Node{}},
+						Else: nil,
+					},
+				},
+			},
+			{
+				name: "if with condition and then body",
+				text: "if a == 4 { 1 + 1 }",
+				expected: []ast.Node{
+					ast.IfStmt{
+						Decls: ast.VarDeclStmt{},
+						Condition: ast.BinaryExpr{
+							Left:     ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
+							Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
+							Operator: tokens.New(tokentype.EQUAL_EQUAL, "==", 0, 0),
+						},
+						Then: ast.Block{
+							Contents: []ast.Node{
+								ast.BinaryExpr{
+									Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+									Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+									Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
+								},
+							},
+						},
+						Else: nil,
+					},
+				},
+			},
+			{
+				name: "if with condition and else body",
+				text: "if a == 4 {} else { 1 + 1 }",
+				expected: []ast.Node{
+					ast.IfStmt{
+						Decls: ast.VarDeclStmt{},
+						Condition: ast.BinaryExpr{
+							Left:     ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
+							Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
+							Operator: tokens.New(tokentype.EQUAL_EQUAL, "==", 0, 0),
+						},
+						Then: ast.Block{Contents: []ast.Node{}},
+						Else: ast.Block{Contents: []ast.Node{
+							ast.BinaryExpr{
+								Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
+							},
+						}},
+					},
+				},
+			},
+			{
+				name: "if with condition and else if",
+				text: "if a == 4 {} else if b == 2 {}",
+				expected: []ast.Node{
+					ast.IfStmt{
+						Decls: ast.VarDeclStmt{},
+						Condition: ast.BinaryExpr{
+							Left:     ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
+							Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
+							Operator: tokens.New(tokentype.EQUAL_EQUAL, "==", 0, 0),
+						},
+						Then: ast.Block{Contents: []ast.Node{}},
+						Else: ast.IfStmt{
+							Decls: ast.VarDeclStmt{},
+							Condition: ast.BinaryExpr{
+								Left:     ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "b", 0, 0)},
+								Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+								Operator: tokens.New(tokentype.EQUAL_EQUAL, "==", 0, 0),
+							},
+							Then: ast.Block{Contents: []ast.Node{}},
+							Else: nil,
+						},
+					},
+				},
+			},
 		}
 
 		for _, e := range table {
@@ -630,6 +771,13 @@ func TestParse(t *testing.T) {
 			{name: "malformed assignment statemement 3", text: "a, 2 = 1 +"},
 			{name: "malformed assignment statemement 4", text: "a, b"},
 			{name: "malformed assignment statemement 5", text: "a = 1 + 2"},
+			{name: "malformed if statment variable declaration", text: "if let; true {}"},
+			{name: "malformed if statment condition", text: "if 1 + {}"},
+			{name: "malformed if statment `then` block", text: "if true {"},
+			{name: "malformed if statment `else` block 1", text: "if true {} else {"},
+			{name: "malformed if statment `else` block 2", text: "if true {} else }"},
+			{name: "malformed if statment `else` block 2", text: "if true {} else }"},
+			{name: "malformed if statment `else` if block", text: "if true {} else if {}"},
 		}
 
 		for _, e := range table {

@@ -125,6 +125,65 @@ func (a *analyzer) VisitAssignStmt(s ast.AssignmentStmt) (interface{}, error) {
 	return nil, nil
 }
 
+func (a *analyzer) VisitIfStmt(s ast.IfStmt) (interface{}, error) {
+	// Set new environment for the entire level of the if-then-else blocks
+	e := environment.New(a.env)
+	a.env = e
+
+	// Analyze any declarations
+	if len(s.Decls.Names) > 0 {
+		_, err := a.VisitVarDeclStmt(s.Decls)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Analyze the `if`` condition
+	err := a.analyzeNode(s.Condition)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Analyze the `then` block
+	err = a.analyzeNode(s.Then)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// If there is an `else` block, analyze it
+	if s.Else != nil {
+		err = a.analyzeNode(s.Else)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	a.env = e.Parent
+
+	return nil, nil
+}
+
+func (a *analyzer) VisitBlock(s ast.Block) (interface{}, error) {
+	e := environment.New(a.env)
+	a.env = e
+
+	for _, n := range s.Contents {
+		err := a.analyzeNode(n)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	a.env = e.Parent
+
+	return nil, nil
+}
+
 func New() *analyzer {
 	return &analyzer{
 		env: environment.New(nil),
