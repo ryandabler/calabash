@@ -270,7 +270,7 @@ func (p *parser) blockStmt() (ast.Node, error) {
 
 	stmts := make([]ast.Node, 0)
 
-	for !p.is(tokentype.RIGHT_BRACE) {
+	for !p.isThenEat(tokentype.RIGHT_BRACE) {
 		stmt, err := p.stmtOrExpr()
 
 		if err != nil {
@@ -279,9 +279,6 @@ func (p *parser) blockStmt() (ast.Node, error) {
 
 		stmts = append(stmts, stmt)
 	}
-
-	// Due to check above, we don't need to error check this `eat`
-	p.eat(tokentype.RIGHT_BRACE)
 
 	return ast.Block{Contents: stmts}, nil
 }
