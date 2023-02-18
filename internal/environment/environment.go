@@ -1,19 +1,15 @@
 package environment
 
-import (
-	"calabash/internal/value"
-)
-
-type Environment struct {
-	Fields map[string]value.Value
-	Parent *Environment
+type Environment[T any] struct {
+	Fields map[string]T
+	Parent *Environment[T]
 }
 
-func (e *Environment) Add(k string, v value.Value) {
+func (e *Environment[T]) Add(k string, v T) {
 	e.Fields[k] = v
 }
 
-func (e *Environment) Get(k string) value.Value {
+func (e *Environment[T]) Get(k string) T {
 	v, ok := e.Fields[k]
 
 	if !ok && e.Parent != nil {
@@ -23,7 +19,7 @@ func (e *Environment) Get(k string) value.Value {
 	return v
 }
 
-func (e *Environment) Set(k string, v value.Value) {
+func (e *Environment[T]) Set(k string, v T) {
 	_, ok := e.Fields[k]
 
 	if !ok {
@@ -34,7 +30,7 @@ func (e *Environment) Set(k string, v value.Value) {
 	e.Fields[k] = v
 }
 
-func (e *Environment) Has(k string) bool {
+func (e *Environment[T]) Has(k string) bool {
 	_, ok := e.Fields[k]
 
 	if !ok && e.Parent != nil {
@@ -44,12 +40,12 @@ func (e *Environment) Has(k string) bool {
 	return ok
 }
 
-func (e *Environment) HasDirectly(k string) bool {
+func (e *Environment[T]) HasDirectly(k string) bool {
 	_, ok := e.Fields[k]
 
 	return ok
 }
 
-func New(e *Environment) *Environment {
-	return &Environment{Fields: make(map[string]value.Value), Parent: e}
+func New[T any](e *Environment[T]) *Environment[T] {
+	return &Environment[T]{Fields: make(map[string]T), Parent: e}
 }

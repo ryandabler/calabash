@@ -55,7 +55,7 @@ func TestAnalyze(t *testing.T) {
 			},
 			{
 				name: "assignment statement",
-				text: "let a; a = 1;",
+				text: "let mut a; a = 1;",
 			},
 			{
 				name: "if statement with only condition",
@@ -135,15 +135,19 @@ func TestAnalyze(t *testing.T) {
 			},
 			{
 				name: "assignment name/value quantity mismatch",
-				text: "let a, b; a, b = 1;",
+				text: "let mut a, mut b; a, b = 1;",
 			},
 			{
 				name: "assignment with undeclared variable",
 				text: "a = 1;",
 			},
 			{
+				name: "assignment to immutable variable",
+				text: "let a; a = 1;",
+			},
+			{
 				name: "assignment with undeclared identifier expression",
-				text: "let a; a = b;",
+				text: "let mut a; a = b;",
 			},
 			{
 				name: "if statement with undeclared identifier in variable declaration",

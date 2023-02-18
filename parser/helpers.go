@@ -3,30 +3,47 @@ package parser
 import (
 	"calabash/ast"
 	"calabash/internal/tokentype"
-	"calabash/lexer/tokens"
 )
 
-func (p *parser) varDeclarationNames() ([]tokens.Token, error) {
-	ident, err := p.eat(tokentype.IDENTIFIER)
-	ns := []tokens.Token{}
+func (p *parser) varDeclarationNames() ([]ast.Identifier, error) {
+	ns := []ast.Identifier{}
+	n, err := p.varName()
 
 	if err != nil {
-		return ns, err
+		return nil, err
 	}
 
-	ns = append(ns, ident)
+	ns = append(ns, n)
 
 	for p.isThenEat(tokentype.COMMA) {
-		ident, err := p.eat(tokentype.IDENTIFIER)
+		n, err = p.varName()
 
 		if err != nil {
-			return []tokens.Token{}, err
+			return nil, err
 		}
 
-		ns = append(ns, ident)
+		ns = append(ns, n)
 	}
 
 	return ns, nil
+}
+
+func (p *parser) varName() (ast.Identifier, error) {
+	i := ast.Identifier{}
+
+	if p.isThenEat(tokentype.MUT) {
+		i.Mut = true
+	}
+
+	ident, err := p.eat(tokentype.IDENTIFIER)
+
+	if err != nil {
+		return i, err
+	}
+
+	i.Name = ident
+
+	return i, nil
 }
 
 func (p *parser) commaExpressions() ([]ast.Expr, error) {

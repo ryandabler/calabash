@@ -48,5 +48,6 @@ const (
 	FN
 	RETURN
 	BOTTOM
+	MUT
 	EOF
 )

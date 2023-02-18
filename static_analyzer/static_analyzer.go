@@ -9,7 +9,7 @@ import (
 )
 
 type analyzer struct {
-	env *environment.Environment
+	env *environment.Environment[identRecord]
 }
 
 func (a *analyzer) Analyze(ast []ast.Node) error {
@@ -84,11 +84,11 @@ func (a *analyzer) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {
 	}
 
 	for _, n := range s.Names {
-		if a.env.HasDirectly(n.Lexeme) {
-			return nil, errors.StaticError{Msg: fmt.Sprintf("Cannot redeclare variable %q", n.Lexeme)}
+		if a.env.HasDirectly(n.Name.Lexeme) {
+			return nil, errors.StaticError{Msg: fmt.Sprintf("Cannot redeclare variable %q", n.Name.Lexeme)}
 		}
 
-		a.env.Add(n.Lexeme, nil)
+		a.env.Add(n.Name.Lexeme, identRecord{mut: n.Mut})
 	}
 
 	for _, v := range s.Values {
@@ -111,6 +111,10 @@ func (a *analyzer) VisitAssignStmt(s ast.AssignmentStmt) (interface{}, error) {
 	for _, n := range s.Names {
 		if !a.env.Has(n.Lexeme) {
 			return nil, errors.StaticError{Msg: fmt.Sprintf("Cannot assign to undeclared variable %q", n.Lexeme)}
+		}
+
+		if !a.env.Get(n.Lexeme).mut {
+			return nil, errors.StaticError{Msg: fmt.Sprintf("Cannot re-assign immutable variable %q", n.Lexeme)}
 		}
 	}
 
@@ -186,6 +190,6 @@ func (a *analyzer) VisitBlock(s ast.Block) (interface{}, error) {
 
 func New() *analyzer {
 	return &analyzer{
-		env: environment.New(nil),
+		env: environment.New[identRecord](nil),
 	}
 }

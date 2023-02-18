@@ -93,7 +93,7 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 		for i, n1 := range tA7.Names {
 			n2 := tB7.Names[i]
 
-			if n1.Lexeme != n2.Lexeme {
+			if n1.Name.Lexeme != n2.Name.Lexeme || n1.Mut != n2.Mut {
 				return false
 			}
 		}
@@ -386,7 +386,10 @@ func TestParse(t *testing.T) {
 				text: "let a, b;",
 				expected: []ast.Node{
 					ast.VarDeclStmt{
-						Names:  []tokens.Token{tokens.New(tokentype.IDENTIFIER, "a", 0, 0), tokens.New(tokentype.IDENTIFIER, "b", 0, 0)},
+						Names: []ast.Identifier{
+							{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0), Mut: false},
+							{Name: tokens.New(tokentype.IDENTIFIER, "b", 0, 0), Mut: false},
+						},
 						Values: []ast.Expr{},
 					},
 				},
@@ -396,11 +399,26 @@ func TestParse(t *testing.T) {
 				text: "let a, b = 1, 2;",
 				expected: []ast.Node{
 					ast.VarDeclStmt{
-						Names: []tokens.Token{tokens.New(tokentype.IDENTIFIER, "a", 0, 0), tokens.New(tokentype.IDENTIFIER, "b", 0, 0)},
+						Names: []ast.Identifier{
+							{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0), Mut: false},
+							{Name: tokens.New(tokentype.IDENTIFIER, "b", 0, 0), Mut: false},
+						},
 						Values: []ast.Expr{
 							ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
 							ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
 						},
+					},
+				},
+			},
+			{
+				name: "mutable variable declaration",
+				text: "let mut a;",
+				expected: []ast.Node{
+					ast.VarDeclStmt{
+						Names: []ast.Identifier{
+							{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0), Mut: true},
+						},
+						Values: []ast.Expr{},
 					},
 				},
 			},
@@ -456,7 +474,9 @@ func TestParse(t *testing.T) {
 				expected: []ast.Node{
 					ast.IfStmt{
 						Decls: ast.VarDeclStmt{
-							Names:  []tokens.Token{tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
+							Names: []ast.Identifier{
+								{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0), Mut: false},
+							},
 							Values: []ast.Expr{ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)}},
 						},
 						Condition: ast.BinaryExpr{

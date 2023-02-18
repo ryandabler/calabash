@@ -13,7 +13,7 @@ import (
 )
 
 type interpreter struct {
-	env *environment.Environment
+	env *environment.Environment[value.Value]
 }
 
 func (i *interpreter) Eval(ns []ast.Node) (interface{}, error) {
@@ -244,7 +244,7 @@ func (i *interpreter) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {
 			}
 		}
 
-		i.env.Add(n.Lexeme, val)
+		i.env.Add(n.Name.Lexeme, val)
 	}
 
 	return nil, nil
@@ -336,6 +336,6 @@ func (i *interpreter) VisitBlock(s ast.Block) (interface{}, error) {
 
 func New() *interpreter {
 	return &interpreter{
-		env: environment.New(nil),
+		env: environment.New[value.Value](nil),
 	}
 }

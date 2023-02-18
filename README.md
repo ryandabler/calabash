@@ -34,8 +34,12 @@ BLOCK_STATEMENT
     ;
 
 MULTI_IDENT
-    : MULTI_IDENT ',' identifier
-    | identifier
+    : MULTI_IDENT ',' IDENT
+    | IDENT
+    ;
+
+IDENT
+    : 'mut'? identifier
     ;
 
 MULTI_EXPR

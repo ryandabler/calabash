@@ -14,6 +14,7 @@ const (
 	identifer_expr
 	grouping_expr
 	var_decl_stmt
+	ident
 	assign_stmt
 	if_stmt
 	block
@@ -128,12 +129,21 @@ func (e GroupingExpr) n() nodetype {
 }
 
 type VarDeclStmt struct {
-	Names  []tokens.Token
+	Names  []Identifier
 	Values []Expr
 }
 
 func (s VarDeclStmt) n() nodetype {
 	return var_decl_stmt
+}
+
+type Identifier struct {
+	Name tokens.Token
+	Mut  bool
+}
+
+func (s Identifier) n() nodetype {
+	return ident
 }
 
 type AssignmentStmt struct {

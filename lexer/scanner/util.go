@@ -27,4 +27,5 @@ var keywords map[string]tokens.Token = map[string]tokens.Token{
 	"fn":     tokens.New(tokentype.FN, "", 0, 0),
 	"return": tokens.New(tokentype.RETURN, "", 0, 0),
 	"bottom": tokens.New(tokentype.BOTTOM, "", 0, 0),
+	"mut":    tokens.New(tokentype.MUT, "", 0, 0),
 }
