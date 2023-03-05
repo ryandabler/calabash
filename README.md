@@ -96,6 +96,7 @@ UNARY
 FUNDAMENTAL
     : number
     | string
+    | identifier
     | '(' EXPRESSION ')'
     | 'bottom'
     | 'true'
