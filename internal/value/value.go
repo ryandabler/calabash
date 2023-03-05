@@ -1,6 +1,10 @@
 package value
 
-import "fmt"
+import (
+	"calabash/ast"
+	"calabash/internal/uuid"
+	"fmt"
+)
 
 type vtype int
 
@@ -9,6 +13,7 @@ const (
 	str
 	boolean
 	bottom
+	fn
 )
 
 type Value interface {
@@ -60,4 +65,22 @@ func (v VBoolean) v() vtype {
 
 func (v VBoolean) Hash() string {
 	return fmt.Sprintf("b:%t", v.Value)
+}
+
+type VFunction struct {
+	Params []ast.Identifier
+	Body   ast.Block
+	hash   string
+}
+
+func (v VFunction) v() vtype {
+	return fn
+}
+
+func (v *VFunction) Hash() string {
+	if v.hash == "" {
+		v.hash = uuid.V4()
+	}
+
+	return v.hash
 }

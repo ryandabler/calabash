@@ -223,6 +223,10 @@ func (i *interpreter) VisitIdentifierExpr(e ast.IdentifierExpr) (interface{}, er
 	return i.env.Get(e.Name.Lexeme), nil
 }
 
+func (i *interpreter) VisitFuncExpr(e ast.FuncExpr) (interface{}, error) {
+	return value.VFunction{Params: e.Params, Body: e.Body}, nil
+}
+
 func (i *interpreter) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {
 	for idx, n := range s.Names {
 		var val value.Value = value.VBottom{}
@@ -332,6 +336,10 @@ func (i *interpreter) VisitBlock(s ast.Block) (interface{}, error) {
 	i.env = i.env.Parent
 
 	return nil, nil
+}
+
+func (i *interpreter) VisitRetStmt(s ast.ReturnStmt) (interface{}, error) {
+	return visitor.Accept[interface{}](s.Expr, i)
 }
 
 func New() *interpreter {

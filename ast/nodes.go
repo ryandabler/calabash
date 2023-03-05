@@ -13,11 +13,13 @@ const (
 	boolean_lit_expr
 	identifer_expr
 	grouping_expr
+	func_expr
 	var_decl_stmt
 	ident
 	assign_stmt
 	if_stmt
 	block
+	ret_stmt
 )
 
 type Node interface {
@@ -128,6 +130,19 @@ func (e GroupingExpr) n() nodetype {
 	return grouping_expr
 }
 
+type FuncExpr struct {
+	Params []Identifier
+	Body   Block
+}
+
+func (e FuncExpr) e() nodetype {
+	return func_expr
+}
+
+func (e FuncExpr) n() nodetype {
+	return func_expr
+}
+
 type VarDeclStmt struct {
 	Names  []Identifier
 	Values []Expr
@@ -172,4 +187,12 @@ type Block struct {
 
 func (s Block) n() nodetype {
 	return block
+}
+
+type ReturnStmt struct {
+	Expr Expr
+}
+
+func (s ReturnStmt) n() nodetype {
+	return ret_stmt
 }

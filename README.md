@@ -15,6 +15,7 @@ STATEMENT
     : VARIABLE_DECLARATION
     | ASSIGNMENT
     | IF
+    | RETURN
     ;
 
 VARIABLE_DECLARATION
@@ -28,6 +29,9 @@ ASSIGNMENT
 IF
     : 'if' ASSIGNMENT? EXPRESSION BLOCK_STATEMENT ['else' (IF | BLOCK_STATEMENT)]?
     ;
+
+RETURN
+    : 'return' EXPRESSION? ';'
 
 BLOCK_STATEMENT
     : '{' PROGRAM '}'
@@ -96,5 +100,15 @@ FUNDAMENTAL
     | 'bottom'
     | 'true'
     | 'false'
+    | FUNCTION
+    ;
+
+FUNCTION
+    : 'fn' '(' MULTI_IDENT* ')' FUNC_BODY
+    ;
+
+FUNC_BODY
+    : '->' EXPRESSION
+    | BLOCK_STATEMENT
     ;
 ```

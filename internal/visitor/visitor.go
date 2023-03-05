@@ -14,10 +14,12 @@ type visitor[T any] interface {
 	VisitBottomLitExpr(e ast.BottomLiteralExpr) (T, error)
 	VisitBooleanLitExpr(e ast.BooleanLiteralExpr) (T, error)
 	VisitIdentifierExpr(e ast.IdentifierExpr) (T, error)
+	VisitFuncExpr(e ast.FuncExpr) (T, error)
 	VisitVarDeclStmt(s ast.VarDeclStmt) (T, error)
 	VisitAssignStmt(s ast.AssignmentStmt) (T, error)
 	VisitIfStmt(s ast.IfStmt) (T, error)
 	VisitBlock(s ast.Block) (T, error)
+	VisitRetStmt(s ast.ReturnStmt) (T, error)
 }
 
 func Accept[T any](n ast.Node, v visitor[T]) (T, error) {
@@ -55,6 +57,10 @@ func Accept[T any](n ast.Node, v visitor[T]) (T, error) {
 		return v.VisitIdentifierExpr(n)
 	}
 
+	if n, ok := n.(ast.FuncExpr); ok {
+		return v.VisitFuncExpr(n)
+	}
+
 	if n, ok := n.(ast.VarDeclStmt); ok {
 		return v.VisitVarDeclStmt(n)
 	}
@@ -69,6 +75,10 @@ func Accept[T any](n ast.Node, v visitor[T]) (T, error) {
 
 	if n, ok := n.(ast.Block); ok {
 		return v.VisitBlock(n)
+	}
+
+	if n, ok := n.(ast.ReturnStmt); ok {
+		return v.VisitRetStmt(n)
 	}
 
 	return empty, errors.New("Supplied node did not match any node type")

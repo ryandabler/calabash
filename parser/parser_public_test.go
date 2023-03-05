@@ -162,6 +162,26 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 		return true
 	}
 
+	tA12, okA := a.(ast.FuncExpr)
+	tB12, okB := b.(ast.FuncExpr)
+
+	if okA && okB {
+		for i, v := range tA12.Params {
+			if v.Name.Lexeme != tB12.Params[i].Name.Lexeme || v.Mut != tB12.Params[i].Mut {
+				return false
+			}
+		}
+
+		return nodesAreEqual(tA12.Body, tB12.Body)
+	}
+
+	tA13, okA := a.(ast.ReturnStmt)
+	tB13, okB := b.(ast.ReturnStmt)
+
+	if okA && okB {
+		return nodesAreEqual(tA13.Expr, tB13.Expr)
+	}
+
 	return false
 }
 
@@ -227,6 +247,40 @@ func TestParse(t *testing.T) {
 				name:     "fundamental boolean 2",
 				text:     "false",
 				expected: []ast.Node{ast.BooleanLiteralExpr{Value: tokens.New(tokentype.FALSE, "false", 0, 0)}},
+			},
+			{
+				name: "fundamental function 1",
+				text: "fn (x, mut y) -> true",
+				expected: []ast.Node{
+					ast.FuncExpr{
+						Params: []ast.Identifier{
+							{Name: tokens.New(tokentype.IDENTIFIER, "x", 0, 0), Mut: false},
+							{Name: tokens.New(tokentype.IDENTIFIER, "y", 0, 0), Mut: true},
+						},
+						Body: ast.Block{
+							Contents: []ast.Node{
+								ast.ReturnStmt{Expr: ast.BooleanLiteralExpr{Value: tokens.New(tokentype.TRUE, "true", 0, 0)}},
+							},
+						},
+					},
+				},
+			},
+			{
+				name: "fundamental function 2",
+				text: "fn (a, mut b) { true }",
+				expected: []ast.Node{
+					ast.FuncExpr{
+						Params: []ast.Identifier{
+							{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0), Mut: false},
+							{Name: tokens.New(tokentype.IDENTIFIER, "b", 0, 0), Mut: true},
+						},
+						Body: ast.Block{
+							Contents: []ast.Node{
+								ast.BooleanLiteralExpr{Value: tokens.New(tokentype.TRUE, "true", 0, 0)},
+							},
+						},
+					},
+				},
 			},
 			{
 				name: "unary minus",
@@ -560,6 +614,20 @@ func TestParse(t *testing.T) {
 					},
 				},
 			},
+			{
+				name: "return 1",
+				text: "return;",
+				expected: []ast.Node{
+					ast.ReturnStmt{Expr: nil},
+				},
+			},
+			{
+				name: "return 2",
+				text: "return false;",
+				expected: []ast.Node{
+					ast.ReturnStmt{Expr: ast.BooleanLiteralExpr{Value: tokens.New(tokentype.FALSE, "false", 0, 0)}},
+				},
+			},
 		}
 
 		for _, e := range table {
@@ -780,6 +848,11 @@ func TestParse(t *testing.T) {
 			{name: "malformed equality expression", text: "1 == +"},
 			{name: "malformed boolean and expression", text: "true && !"},
 			{name: "malformed boolean or expression", text: "true || !"},
+			{name: "malformed function expression 1", text: "fn a -> 1"},
+			{name: "malformed function expression 2", text: "fn (1) -> 1"},
+			{name: "malformed function expression 3", text: "fn (a -> 1"},
+			{name: "malformed function expression 3", text: "fn (a) -> 1 +"},
+			{name: "malformed function expression 3", text: "fn (a) { 1 + }"},
 			{name: "malformed variable declaration 1", text: "let 'ab';"},
 			{name: "malformed variable declaration 2", text: "let ab"},
 			{name: "malformed variable declaration 3", text: "let a = 4 +"},
@@ -798,6 +871,8 @@ func TestParse(t *testing.T) {
 			{name: "malformed if statment `else` block 2", text: "if true {} else }"},
 			{name: "malformed if statment `else` block 2", text: "if true {} else }"},
 			{name: "malformed if statment `else` if block", text: "if true {} else if {}"},
+			{name: "malformed return statement", text: "return true"},
+			{name: "malformed return statement", text: "return 1 +;"},
 		}
 
 		for _, e := range table {

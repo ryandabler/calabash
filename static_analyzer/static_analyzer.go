@@ -78,6 +78,27 @@ func (a *analyzer) VisitIdentifierExpr(e ast.IdentifierExpr) (interface{}, error
 	return nil, nil
 }
 
+func (a *analyzer) VisitFuncExpr(e ast.FuncExpr) (interface{}, error) {
+	// By default, functions are not closures so they only have access to their
+	// own environment
+	env := a.env
+	a.env = environment.New[identRecord](nil)
+
+	for _, n := range e.Params {
+		a.env.Add(n.Name.Lexeme, identRecord{mut: n.Mut})
+	}
+
+	_, err := a.VisitBlock(e.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	a.env = env
+
+	return nil, nil
+}
+
 func (a *analyzer) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {
 	if len(s.Names) != len(s.Values) && len(s.Values) > 0 {
 		return nil, errors.StaticError{Msg: "If any variable is initialized, they all must be."}
@@ -186,6 +207,10 @@ func (a *analyzer) VisitBlock(s ast.Block) (interface{}, error) {
 	a.env = e.Parent
 
 	return nil, nil
+}
+
+func (a *analyzer) VisitRetStmt(s ast.ReturnStmt) (interface{}, error) {
+	return visitor.Accept[interface{}](s.Expr, a)
 }
 
 func New() *analyzer {

@@ -108,6 +108,16 @@ func (p *parser) stmtOrExpr() (ast.Node, error) {
 		return n, nil
 	}
 
+	if p.isThenEat(tokentype.RETURN) {
+		n, err := p.retStmt()
+
+		if err != nil {
+			return nil, err
+		}
+
+		return n, nil
+	}
+
 	expr, err := p.expression()
 
 	if err != nil {
@@ -281,6 +291,27 @@ func (p *parser) blockStmt() (ast.Block, error) {
 	}
 
 	return ast.Block{Contents: stmts}, nil
+}
+
+func (p *parser) retStmt() (ast.Node, error) {
+	var expr ast.Expr
+	var err error
+
+	if !p.is(tokentype.SEMICOLON) {
+		expr, err = p.expression()
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = p.eat(tokentype.SEMICOLON)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.ReturnStmt{Expr: expr}, nil
 }
 
 func (p *parser) expression() (ast.Expr, error) {
@@ -477,6 +508,54 @@ func (p *parser) unary() (ast.Expr, error) {
 	return p.fundamental()
 }
 
+func (p *parser) function() (ast.Expr, error) {
+	// Get formal parameter list
+	_, err := p.eat(tokentype.LEFT_PAREN)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var idents []ast.Identifier
+
+	if !p.is(tokentype.RIGHT_PAREN) {
+		idents, err = p.varDeclarationNames()
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = p.eat(tokentype.RIGHT_PAREN)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var body ast.Block
+
+	// Get function body
+	if p.isThenEat(tokentype.MINUS_GREAT) {
+		expr, err := p.expression()
+
+		if err != nil {
+			return nil, err
+		}
+
+		body.Contents = []ast.Node{
+			ast.ReturnStmt{Expr: expr},
+		}
+	} else {
+		body, err = p.blockStmt()
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return ast.FuncExpr{Params: idents, Body: body}, nil
+}
+
 func (p *parser) fundamental() (ast.Expr, error) {
 	if p.atEnd() {
 		return nil, errors.ParseError{Msg: "Unexpected end of input"}
@@ -521,6 +600,10 @@ func (p *parser) fundamental() (ast.Expr, error) {
 	if p.is(tokentype.TRUE, tokentype.FALSE) {
 		b, _ := p.eat(tokentype.TRUE, tokentype.FALSE)
 		return ast.BooleanLiteralExpr{Value: b}, nil
+	}
+
+	if p.isThenEat(tokentype.FN) {
+		return p.function()
 	}
 
 	t := p.tokens[p.i]
