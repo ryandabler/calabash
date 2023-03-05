@@ -261,11 +261,11 @@ func (p *parser) ifStmt() (ast.Node, error) {
 	return ast.IfStmt{Decls: decls, Condition: cond, Then: then, Else: elseBlk}, nil
 }
 
-func (p *parser) blockStmt() (ast.Node, error) {
+func (p *parser) blockStmt() (ast.Block, error) {
 	_, err := p.eat(tokentype.LEFT_BRACE)
 
 	if err != nil {
-		return nil, err
+		return ast.Block{}, err
 	}
 
 	stmts := make([]ast.Node, 0)
@@ -274,7 +274,7 @@ func (p *parser) blockStmt() (ast.Node, error) {
 		stmt, err := p.stmtOrExpr()
 
 		if err != nil {
-			return nil, err
+			return ast.Block{}, err
 		}
 
 		stmts = append(stmts, stmt)
