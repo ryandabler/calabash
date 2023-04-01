@@ -14,6 +14,7 @@ const (
 	identifer_expr
 	grouping_expr
 	func_expr
+	call_expr
 	var_decl_stmt
 	ident
 	assign_stmt
@@ -141,6 +142,19 @@ func (e FuncExpr) e() nodetype {
 
 func (e FuncExpr) n() nodetype {
 	return func_expr
+}
+
+type CallExpr struct {
+	Callee    Expr
+	Arguments []Expr
+}
+
+func (e CallExpr) e() nodetype {
+	return call_expr
+}
+
+func (e CallExpr) n() nodetype {
+	return call_expr
 }
 
 type VarDeclStmt struct {

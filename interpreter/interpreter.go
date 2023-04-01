@@ -7,6 +7,7 @@ import (
 	"calabash/internal/tokentype"
 	"calabash/internal/value"
 	"calabash/internal/visitor"
+	e "errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -22,6 +23,10 @@ func (i *interpreter) Eval(ns []ast.Node) (interface{}, error) {
 
 	for _, n := range ns {
 		v, err = i.evalNode(n)
+
+		if e.Is(err, errors.ReturnError{}) {
+			return v, nil
+		}
 
 		if err != nil {
 			return nil, err
@@ -231,6 +236,55 @@ func (i *interpreter) VisitFuncExpr(e ast.FuncExpr) (interface{}, error) {
 	return fn, nil
 }
 
+func (i *interpreter) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
+	fBodyEnv := environment.New[value.Value](nil)
+
+	// Evaluate callee and arguments in current scope before replacing it
+	// with empty scope for the function body.
+	callee, err := i.evalNode(e.Callee)
+
+	if err != nil {
+		return nil, err
+	}
+
+	vfunc, ok := callee.(value.VFunction)
+
+	if !ok {
+		return nil, errors.RuntimeError{Msg: "Attempting to call a non-functional value."}
+	}
+
+	for idx, a := range e.Arguments {
+		v, err := i.evalNode(a)
+
+		if err != nil {
+			return nil, err
+		}
+
+		val, ok := v.(value.Value)
+
+		if !ok {
+			return nil, errors.RuntimeError{Msg: "Argument " + fmt.Sprint(1) + " is not a value"}
+		}
+
+		fBodyEnv.Add(vfunc.Params[idx].Name.Lexeme, val)
+	}
+
+	// By default, functions are not closures so they only have access to their
+	// own environment
+	env := i.env
+	i.env = fBodyEnv
+
+	v, err := vfunc.Call(i)
+
+	if err != nil {
+		return nil, err
+	}
+
+	i.env = env
+
+	return v, nil
+}
+
 func (i *interpreter) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {
 	for idx, n := range s.Names {
 		var val value.Value = value.VBottom{}
@@ -343,7 +397,13 @@ func (i *interpreter) VisitBlock(s ast.Block) (interface{}, error) {
 }
 
 func (i *interpreter) VisitRetStmt(s ast.ReturnStmt) (interface{}, error) {
-	return visitor.Accept[interface{}](s.Expr, i)
+	v, err := visitor.Accept[interface{}](s.Expr, i)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return v, errors.ReturnError{}
 }
 
 func New() *interpreter {

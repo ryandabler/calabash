@@ -31,3 +31,9 @@ type StaticError struct {
 func (e StaticError) Error() string {
 	return e.Msg
 }
+
+type ReturnError struct{}
+
+func (e ReturnError) Error() string {
+	return ""
+}

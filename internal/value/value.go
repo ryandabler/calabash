@@ -6,6 +6,10 @@ import (
 	"fmt"
 )
 
+type Evaluator interface {
+	Eval([]ast.Node) (interface{}, error)
+}
+
 type vtype int
 
 const (
@@ -79,6 +83,14 @@ func (v VFunction) v() vtype {
 
 func (v VFunction) Hash() string {
 	return v.hash
+}
+
+func (v VFunction) Arity() int {
+	return len(v.Params)
+}
+
+func (v VFunction) Call(e Evaluator) (interface{}, error) {
+	return e.Eval(v.Body.Contents)
 }
 
 // Because functions are always unique, to populate the unexported

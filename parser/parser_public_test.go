@@ -182,6 +182,29 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 		return nodesAreEqual(tA13.Expr, tB13.Expr)
 	}
 
+	tA14, okA := a.(ast.CallExpr)
+	tB14, okB := b.(ast.CallExpr)
+
+	if okA && okB {
+		if len(tA14.Arguments) != len(tB14.Arguments) {
+			return false
+		}
+
+		for i, a := range tA14.Arguments {
+			b := tB14.Arguments[i]
+
+			if !nodesAreEqual(a, b) {
+				return false
+			}
+		}
+
+		if !nodesAreEqual(tA14.Callee, tB14.Callee) {
+			return false
+		}
+
+		return true
+	}
+
 	return false
 }
 
@@ -277,6 +300,67 @@ func TestParse(t *testing.T) {
 						Body: ast.Block{
 							Contents: []ast.Node{
 								ast.BooleanLiteralExpr{Value: tokens.New(tokentype.TRUE, "true", 0, 0)},
+							},
+						},
+					},
+				},
+			},
+			{
+				name: "call expression 1",
+				text: "fn () {}()",
+				expected: []ast.Node{
+					ast.CallExpr{
+						Callee: ast.FuncExpr{
+							Params: []ast.Identifier{},
+							Body: ast.Block{
+								Contents: []ast.Node{},
+							},
+						},
+					},
+				},
+			},
+			{
+				name: "call expression 2",
+				text: "(fn () -> 1)()",
+				expected: []ast.Node{
+					ast.CallExpr{
+						Callee: ast.GroupingExpr{
+							Expr: ast.FuncExpr{
+								Body: ast.Block{
+									Contents: []ast.Node{
+										ast.ReturnStmt{
+											Expr: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+										},
+									},
+								},
+							},
+						},
+						Arguments: []ast.Expr{},
+					},
+				},
+			},
+			{
+				name: "call expression 3",
+				text: "abc()",
+				expected: []ast.Node{
+					ast.CallExpr{
+						Callee:    ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "abc", 0, 0)},
+						Arguments: []ast.Expr{},
+					},
+				},
+			},
+			{
+				name: "call expression 4",
+				text: "a(true, 1 + 2)",
+				expected: []ast.Node{
+					ast.CallExpr{
+						Callee: ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
+						Arguments: []ast.Expr{
+							ast.BooleanLiteralExpr{Value: tokens.New(tokentype.TRUE, "true", 0, 0)},
+							ast.BinaryExpr{
+								Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+								Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
 							},
 						},
 					},
@@ -853,6 +937,7 @@ func TestParse(t *testing.T) {
 			{name: "malformed function expression 3", text: "fn (a -> 1"},
 			{name: "malformed function expression 3", text: "fn (a) -> 1 +"},
 			{name: "malformed function expression 3", text: "fn (a) { 1 + }"},
+			{name: "malformed call expression", text: "a(if)"},
 			{name: "malformed variable declaration 1", text: "let 'ab';"},
 			{name: "malformed variable declaration 2", text: "let ab"},
 			{name: "malformed variable declaration 3", text: "let a = 4 +"},

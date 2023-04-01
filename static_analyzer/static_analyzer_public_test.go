@@ -58,6 +58,18 @@ func TestAnalyze(t *testing.T) {
 				text: "fn (a, mut b) -> a + b",
 			},
 			{
+				name: "call expressions 1",
+				text: "let abc; abc()",
+			},
+			{
+				name: "call expressions 2",
+				text: "let a, abc; abc(a)",
+			},
+			{
+				name: "call expression 3",
+				text: "fn () {}()",
+			},
+			{
 				name: "assignment statement",
 				text: "let mut a; a = 1;",
 			},
@@ -124,6 +136,14 @@ func TestAnalyze(t *testing.T) {
 			{
 				name: "referencing identifier not declared in body",
 				text: "let a; fn (b) { a }",
+			},
+			{
+				name: "referencing undeclared identifier in arguments list",
+				text: "fn () {}(a)",
+			},
+			{
+				name: "calling an undeclared identifier",
+				text: "abc()",
 			},
 			{
 				name: "under-initialized variables",
