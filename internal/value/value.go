@@ -77,10 +77,13 @@ func (v VFunction) v() vtype {
 	return fn
 }
 
-func (v *VFunction) Hash() string {
-	if v.hash == "" {
-		v.hash = uuid.V4()
-	}
-
+func (v VFunction) Hash() string {
 	return v.hash
+}
+
+// Because functions are always unique, to populate the unexported
+// hash we need to manually construct functions in this package
+// with the UUID supplied
+func NewFunction() VFunction {
+	return VFunction{hash: uuid.V4()}
 }

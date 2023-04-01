@@ -224,7 +224,11 @@ func (i *interpreter) VisitIdentifierExpr(e ast.IdentifierExpr) (interface{}, er
 }
 
 func (i *interpreter) VisitFuncExpr(e ast.FuncExpr) (interface{}, error) {
-	return value.VFunction{Params: e.Params, Body: e.Body}, nil
+	fn := value.NewFunction()
+	fn.Body = e.Body
+	fn.Params = e.Params
+
+	return fn, nil
 }
 
 func (i *interpreter) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {
