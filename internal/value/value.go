@@ -74,6 +74,7 @@ func (v VBoolean) Hash() string {
 type VFunction struct {
 	Params []ast.Identifier
 	Body   ast.Block
+	Apps   []Value
 	hash   string
 }
 
@@ -85,8 +86,17 @@ func (v VFunction) Hash() string {
 	return v.hash
 }
 
+func (v VFunction) Apply(vs []Value) VFunction {
+	f := NewFunction()
+	f.Params = v.Params
+	f.Body = v.Body
+	f.Apps = append(v.Apps, vs...)
+
+	return f
+}
+
 func (v VFunction) Arity() int {
-	return len(v.Params)
+	return len(v.Params) - len(v.Apps)
 }
 
 func (v VFunction) Call(e Evaluator) (interface{}, error) {

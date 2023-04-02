@@ -4,6 +4,7 @@ import (
 	"calabash/ast"
 	"calabash/errors"
 	"calabash/internal/environment"
+	"calabash/internal/slice"
 	"calabash/internal/tokentype"
 	"calabash/internal/value"
 	"calabash/internal/visitor"
@@ -237,8 +238,6 @@ func (i *interpreter) VisitFuncExpr(e ast.FuncExpr) (interface{}, error) {
 }
 
 func (i *interpreter) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
-	fBodyEnv := environment.New[value.Value](nil)
-
 	// Evaluate callee and arguments in current scope before replacing it
 	// with empty scope for the function body.
 	callee, err := i.evalNode(e.Callee)
@@ -253,8 +252,8 @@ func (i *interpreter) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 		return nil, errors.RuntimeError{Msg: "Attempting to call a non-functional value."}
 	}
 
-	for idx, a := range e.Arguments {
-		v, err := i.evalNode(a)
+	vals, err := slice.Map(e.Arguments, func(e ast.Expr) (value.Value, error) {
+		v, err := i.evalNode(e)
 
 		if err != nil {
 			return nil, err
@@ -266,7 +265,23 @@ func (i *interpreter) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 			return nil, errors.RuntimeError{Msg: "Argument " + fmt.Sprint(1) + " is not a value"}
 		}
 
-		fBodyEnv.Add(vfunc.Params[idx].Name.Lexeme, val)
+		return val, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if function is being partially applied and return a new function if so
+	if len(vals) < vfunc.Arity() {
+		return vfunc.Apply(vals), nil
+	}
+
+	// Begin function call routines
+	fBodyEnv := environment.New[value.Value](nil)
+
+	for idx, v := range append(vfunc.Apps, vals...) {
+		fBodyEnv.Add(vfunc.Params[idx].Name.Lexeme, v)
 	}
 
 	// By default, functions are not closures so they only have access to their
