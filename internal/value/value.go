@@ -100,7 +100,17 @@ func (v VFunction) Arity() int {
 }
 
 func (v VFunction) Call(e Evaluator) (interface{}, error) {
-	return e.Eval(v.Body.Contents)
+	rVal, err := e.Eval(v.Body.Contents)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if rVal == nil {
+		return VBottom{}, nil
+	}
+
+	return rVal, nil
 }
 
 // Because functions are always unique, to populate the unexported
