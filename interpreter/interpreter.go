@@ -351,6 +351,8 @@ func (i *interpreter) VisitIfStmt(s ast.IfStmt) (interface{}, error) {
 	e := environment.New(i.env)
 	i.env = e
 
+	defer func() { i.env = i.env.Parent }()
+
 	_, err := i.VisitVarDeclStmt(s.Decls)
 
 	if err != nil {
@@ -389,14 +391,14 @@ func (i *interpreter) VisitIfStmt(s ast.IfStmt) (interface{}, error) {
 		return nil, err
 	}
 
-	i.env = i.env.Parent
-
 	return nil, nil
 }
 
 func (i *interpreter) VisitBlock(s ast.Block) (interface{}, error) {
 	e := environment.New(i.env)
 	i.env = e
+
+	defer func() { i.env = i.env.Parent }()
 
 	for _, n := range s.Contents {
 		_, err := i.evalNode(n)
@@ -405,8 +407,6 @@ func (i *interpreter) VisitBlock(s ast.Block) (interface{}, error) {
 			return nil, err
 		}
 	}
-
-	i.env = i.env.Parent
 
 	return nil, nil
 }
