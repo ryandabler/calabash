@@ -279,9 +279,10 @@ func (i *interpreter) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 
 	// Begin function call routines
 	fBodyEnv := environment.New[value.Value](nil)
+	args := append(vfunc.Apps, vals...)
 
-	for idx, v := range append(vfunc.Apps, vals...) {
-		fBodyEnv.Add(vfunc.Params[idx].Name.Lexeme, v)
+	for idx, ident := range vfunc.Params {
+		fBodyEnv.Add(ident.Name.Lexeme, args[idx])
 	}
 
 	// By default, functions are not closures so they only have access to their

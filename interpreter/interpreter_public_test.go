@@ -473,17 +473,17 @@ func TestEval(t *testing.T) {
 					return nil
 				},
 			},
-			// {
-			// 	name: "functions can be applied with more arguments than arity",
-			// 	text: "let a = fn (a, b) -> a + b; a(1,2,3)",
-			// 	validate: func(v interface{}, i interpreter.IntpState) error {
-			// 		if !reflect.DeepEqual(v, value.VNumber{Value: 3}) {
-			// 			return errors.New("Extra arguments should be discarded when functions are called")
-			// 		}
+			{
+				name: "functions can be applied with more arguments than arity",
+				text: "let a = fn (a, b) -> a + b; a(1,2,3)",
+				validate: func(v interface{}, i interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.VNumber{Value: 3}) {
+						return errors.New("Extra arguments should be discarded when functions are called")
+					}
 
-			// 		return nil
-			// 	},
-			// },
+					return nil
+				},
+			},
 			{
 				name: "function bodies create their own scope",
 				text: "let a, b; let c = fn(mut a) { a = 2; let c = 2; };",
