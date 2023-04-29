@@ -426,3 +426,11 @@ func New() *interpreter {
 		env: environment.New[value.Value](nil),
 	}
 }
+
+type IntpState struct {
+	Env *environment.Environment[value.Value]
+}
+
+func (i *interpreter) Dump() IntpState {
+	return IntpState{Env: i.env}
+}
