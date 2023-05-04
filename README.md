@@ -19,11 +19,16 @@ STATEMENT
     ;
 
 VARIABLE_DECLARATION
-    : 'let' MULTI_IDENT '=' MULTI_EXPR ';'
+    : 'let' MULTI_IDENT_DECL '=' MULTI_EXPR ';'
     ;
 
 ASSIGNMENT
     : MULTI_IDENT '=' MULTI_EXPR ';'
+    ;
+
+MULTI_IDENT
+    : MULTI_IDENT ',' identifier
+    | identifier
     ;
 
 IF
@@ -37,12 +42,12 @@ BLOCK_STATEMENT
     : '{' PROGRAM '}'
     ;
 
-MULTI_IDENT
-    : MULTI_IDENT ',' IDENT
-    | IDENT
+MULTI_IDENT_DECL
+    : MULTI_IDENT_DECL ',' IDENT_DECL
+    | IDENT_DECL
     ;
 
-IDENT
+IDENT_DECL
     : 'mut'? identifier
     ;
 
@@ -116,7 +121,7 @@ FUNDAMENTAL
     ;
 
 FUNCTION
-    : 'fn' '(' MULTI_IDENT* ')' FUNC_BODY
+    : 'fn' '(' MULTI_IDENT_DECL? ')' FUNC_BODY
     ;
 
 TUPLE
