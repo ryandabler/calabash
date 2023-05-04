@@ -598,6 +598,26 @@ func (p *parser) function() (ast.Expr, error) {
 	return ast.FuncExpr{Params: idents, Body: body}, nil
 }
 
+func (p *parser) tuple() (ast.Expr, error) {
+	if p.isThenEat(tokentype.RIGHT_BRACKET) {
+		return ast.TupleLiteralExpr{}, nil
+	}
+
+	items, err := p.commaExpressions()
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.eat(tokentype.RIGHT_BRACKET)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.TupleLiteralExpr{Contents: items}, nil
+}
+
 func (p *parser) fundamental() (ast.Expr, error) {
 	if p.atEnd() {
 		return nil, errors.ParseError{Msg: "Unexpected end of input"}
@@ -646,6 +666,10 @@ func (p *parser) fundamental() (ast.Expr, error) {
 
 	if p.isThenEat(tokentype.FN) {
 		return p.function()
+	}
+
+	if p.isThenEat(tokentype.LEFT_BRACKET) {
+		return p.tuple()
 	}
 
 	t := p.tokens[p.i]

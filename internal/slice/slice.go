@@ -15,3 +15,11 @@ func Map[T any, V any](as []T, f func(T) (V, error)) ([]V, error) {
 
 	return bs, nil
 }
+
+func Fold[T any, V any](as []T, i V, f func(T, V) V) V {
+	for _, a := range as {
+		i = f(a, i)
+	}
+
+	return i
+}

@@ -205,6 +205,23 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 		return true
 	}
 
+	tA15, okA := a.(ast.TupleLiteralExpr)
+	tB15, okB := b.(ast.TupleLiteralExpr)
+
+	if okA && okB {
+		if len(tA15.Contents) != len(tB15.Contents) {
+			return false
+		}
+
+		for i, e := range tA15.Contents {
+			if !nodesAreEqual(e, tB15.Contents[i]) {
+				return false
+			}
+		}
+
+		return true
+	}
+
 	return false
 }
 
@@ -301,6 +318,43 @@ func TestParse(t *testing.T) {
 							Contents: []ast.Node{
 								ast.BooleanLiteralExpr{Value: tokens.New(tokentype.TRUE, "true", 0, 0)},
 							},
+						},
+					},
+				},
+			},
+			{
+				name: "fundamental tuple 1",
+				text: "[1]",
+				expected: []ast.Node{
+					ast.TupleLiteralExpr{
+						Contents: []ast.Expr{
+							ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+						},
+					},
+				},
+			},
+			{
+				name: "fundamental tuple 2",
+				text: "[]",
+				expected: []ast.Node{
+					ast.TupleLiteralExpr{
+						Contents: nil,
+					},
+				},
+			},
+			{
+				name: "fundamental tuple 3",
+				text: "[1+2, a, 'a']",
+				expected: []ast.Node{
+					ast.TupleLiteralExpr{
+						Contents: []ast.Expr{
+							ast.BinaryExpr{
+								Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+								Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
+							},
+							ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
+							ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "'a'", 0, 0)},
 						},
 					},
 				},
@@ -958,6 +1012,8 @@ func TestParse(t *testing.T) {
 			{name: "malformed if statment `else` if block", text: "if true {} else if {}"},
 			{name: "malformed return statement", text: "return true"},
 			{name: "malformed return statement", text: "return 1 +;"},
+			{name: "malformed tuple expression 1", text: "[1,]"},
+			{name: "malformed tuple expression 2", text: "[1+]"},
 		}
 
 		for _, e := range table {

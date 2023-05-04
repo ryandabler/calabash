@@ -112,10 +112,15 @@ FUNDAMENTAL
     | 'true'
     | 'false'
     | FUNCTION
+    | TUPLE
     ;
 
 FUNCTION
     : 'fn' '(' MULTI_IDENT* ')' FUNC_BODY
+    ;
+
+TUPLE
+    : '[' ARGUMENTS_LIST? ']'
     ;
 
 FUNC_BODY

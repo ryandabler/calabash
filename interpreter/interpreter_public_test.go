@@ -164,6 +164,51 @@ func TestEval(t *testing.T) {
 				},
 			},
 			{
+				name: "literal tuple 1",
+				text: "[1, \"a\", fn() -> 1]",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					tuple, ok := v.(value.VTuple)
+
+					if !ok {
+						return errors.New("Literal value was not a tuple")
+					}
+
+					if tuple.Items[0] != (value.VNumber{Value: 1}) {
+						return errors.New("First tuple item is not equal to 1")
+					}
+
+					if tuple.Items[1] != (value.VString{Value: "a"}) {
+						return errors.New("Second tuple item is not equal to \"a\"")
+					}
+
+					fn, ok := tuple.Items[2].(value.VFunction)
+
+					if !ok {
+						return errors.New("Third tuple item is not a function")
+					}
+
+					if !reflect.DeepEqual(
+						fn.Body,
+						ast.Block{Contents: []ast.Node{ast.ReturnStmt{Expr: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 17)}}}},
+					) {
+						return errors.New("Function bodies are not the same")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "literal tuple 2",
+				text: "[]",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.VTuple{Items: []value.Value{}}) {
+						return errors.New("Tuple should be empty")
+					}
+
+					return nil
+				},
+			},
+			{
 				name: "binary addition 1",
 				text: "1 + 1",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
@@ -279,6 +324,39 @@ func TestEval(t *testing.T) {
 				validate: func(v interface{}, _ interpreter.IntpState) error {
 					if !reflect.DeepEqual(v, value.VBoolean{Value: false}) {
 						return errors.New("Values does not equal false")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "binary equal to (tuples) 1",
+				text: "[1, \"a\", [true, bottom]] == [1, \"a\", [true, bottom]]",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.VBoolean{Value: true}) {
+						return errors.New("Tuples should be deeply equal")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "binary equal to (tuples) 2",
+				text: "[1, \"a\", [true, bottom]] == [\"a\", [true, bottom], 1]",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.VBoolean{Value: false}) {
+						return errors.New("Out of order tuples should not be deeply equal")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "binary equal to (tuples) 3",
+				text: "[1, \"a\", [true, bottom]] == [\"a\", [true, bottom]]",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.VBoolean{Value: false}) {
+						return errors.New("Tuples with different numbers of elements should not be deeply equal")
 					}
 
 					return nil
@@ -766,6 +844,10 @@ func TestEval(t *testing.T) {
 			{
 				name: "Errors in assignments bubble up",
 				text: "let mut a, mut b; a, b = 1, 1 + '1';",
+			},
+			{
+				name: "Errors in tuples should bubble up",
+				text: "[1 + 'a']",
 			},
 		}
 

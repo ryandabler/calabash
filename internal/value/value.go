@@ -2,6 +2,7 @@ package value
 
 import (
 	"calabash/ast"
+	"calabash/internal/slice"
 	"calabash/internal/uuid"
 	"fmt"
 )
@@ -18,6 +19,7 @@ const (
 	boolean
 	bottom
 	fn
+	tuple
 )
 
 type Value interface {
@@ -118,4 +120,26 @@ func (v VFunction) Call(e Evaluator) (interface{}, error) {
 // with the UUID supplied
 func NewFunction() VFunction {
 	return VFunction{hash: uuid.V4()}
+}
+
+type VTuple struct {
+	Items []Value
+	hash  string
+}
+
+func (v VTuple) v() vtype {
+	return tuple
+}
+
+func (v VTuple) Hash() string {
+	return fmt.Sprintf("tpl:%s", v.hash)
+}
+
+func NewTuple(items []Value) VTuple {
+	return VTuple{
+		Items: items,
+		hash: slice.Fold(items, "", func(i Value, acc string) string {
+			return acc + "," + i.Hash()
+		}),
+	}
 }

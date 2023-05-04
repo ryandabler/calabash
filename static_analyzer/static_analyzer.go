@@ -30,6 +30,14 @@ func (a *analyzer) analyzeNode(n ast.Node) error {
 	return err
 }
 
+func (a *analyzer) newScope() {
+	a.env = environment.New(a.env)
+}
+
+func (a *analyzer) endScope() {
+	a.env = a.env.Parent
+}
+
 func (a *analyzer) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 	err := a.analyzeNode(e.Left)
 
@@ -67,6 +75,18 @@ func (a *analyzer) VisitBottomLitExpr(e ast.BottomLiteralExpr) (interface{}, err
 }
 
 func (a *analyzer) VisitBooleanLitExpr(e ast.BooleanLiteralExpr) (interface{}, error) {
+	return nil, nil
+}
+
+func (a *analyzer) VisitTupleLitExpr(e ast.TupleLiteralExpr) (interface{}, error) {
+	for _, e := range e.Contents {
+		err := a.analyzeNode(e)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return nil, nil
 }
 
@@ -172,8 +192,7 @@ func (a *analyzer) VisitAssignStmt(s ast.AssignmentStmt) (interface{}, error) {
 
 func (a *analyzer) VisitIfStmt(s ast.IfStmt) (interface{}, error) {
 	// Set new environment for the entire level of the if-then-else blocks
-	e := environment.New(a.env)
-	a.env = e
+	a.newScope()
 
 	// Analyze any declarations
 	if len(s.Decls.Names) > 0 {
@@ -207,7 +226,7 @@ func (a *analyzer) VisitIfStmt(s ast.IfStmt) (interface{}, error) {
 		}
 	}
 
-	a.env = e.Parent
+	a.endScope()
 
 	return nil, nil
 }

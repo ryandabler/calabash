@@ -46,6 +46,18 @@ func TestAnalyze(t *testing.T) {
 				text: "false",
 			},
 			{
+				name: "tuple expressions 1",
+				text: "[]",
+			},
+			{
+				name: "tuple expressions 2",
+				text: "[1, 'a', fn () -> bottom]",
+			},
+			{
+				name: "tuple expressions 3",
+				text: "let a; [a]",
+			},
+			{
 				name: "variable declaration",
 				text: "let a;",
 			},
@@ -196,6 +208,10 @@ func TestAnalyze(t *testing.T) {
 			{
 				name: "if statement with undeclared identifier in `else` block",
 				text: "if let a; a == 3 {} else { b }",
+			},
+			{
+				name: "tuple expression containing undeclared variables",
+				text: "[1, a]",
 			},
 		}
 

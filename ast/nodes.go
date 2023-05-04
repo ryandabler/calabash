@@ -11,6 +11,7 @@ const (
 	string_lit_expr
 	bottom_lit_expr
 	boolean_lit_expr
+	tuple_lit_expr
 	identifer_expr
 	grouping_expr
 	func_expr
@@ -105,6 +106,18 @@ func (e BooleanLiteralExpr) e() nodetype {
 
 func (e BooleanLiteralExpr) n() nodetype {
 	return boolean_lit_expr
+}
+
+type TupleLiteralExpr struct {
+	Contents []Expr
+}
+
+func (e TupleLiteralExpr) e() nodetype {
+	return tuple_lit_expr
+}
+
+func (e TupleLiteralExpr) n() nodetype {
+	return tuple_lit_expr
 }
 
 type IdentifierExpr struct {

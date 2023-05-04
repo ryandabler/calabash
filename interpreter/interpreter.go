@@ -8,7 +8,7 @@ import (
 	"calabash/internal/tokentype"
 	"calabash/internal/value"
 	"calabash/internal/visitor"
-	e "errors"
+	errs "errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -25,7 +25,7 @@ func (i *interpreter) Eval(ns []ast.Node) (interface{}, error) {
 	for _, n := range ns {
 		v, err = i.evalNode(n)
 
-		if e.Is(err, errors.ReturnError{}) {
+		if errs.Is(err, errors.ReturnError{}) {
 			return v, nil
 		}
 
@@ -223,6 +223,28 @@ func (i *interpreter) VisitBottomLitExpr(e ast.BottomLiteralExpr) (interface{}, 
 
 func (i *interpreter) VisitBooleanLitExpr(e ast.BooleanLiteralExpr) (interface{}, error) {
 	return value.VBoolean{Value: e.Value.Type == tokentype.TRUE}, nil
+}
+
+func (i *interpreter) VisitTupleLitExpr(e ast.TupleLiteralExpr) (interface{}, error) {
+	vs := make([]value.Value, len(e.Contents))
+
+	for idx, c := range e.Contents {
+		ifc, err := i.evalNode(c)
+
+		if err != nil {
+			return nil, err
+		}
+
+		v, ok := ifc.(value.Value)
+
+		if !ok {
+			return nil, errs.New("Did not have a value when building tuple literal's contents")
+		}
+
+		vs[idx] = v
+	}
+
+	return value.NewTuple(vs), nil
 }
 
 func (i *interpreter) VisitIdentifierExpr(e ast.IdentifierExpr) (interface{}, error) {
