@@ -78,6 +78,14 @@ func TestAnalyze(t *testing.T) {
 				text: "let a, abc; abc(a)",
 			},
 			{
+				name: "proto expression",
+				text: "proto { true -> fn(a) -> a }",
+			},
+			{
+				name: "me expression",
+				text: "proto { true -> fn() -> me }",
+			},
+			{
 				name: "call expression 3",
 				text: "fn () {}()",
 			},
@@ -172,6 +180,22 @@ func TestAnalyze(t *testing.T) {
 			{
 				name: "right-side binary error",
 				text: "2 - a",
+			},
+			{
+				name: "me used outside of proto",
+				text: "me",
+			},
+			{
+				name: "proto with 'me' used as key",
+				text: "proto { me -> fn () -> 1 }",
+			},
+			{
+				name: "proto with undeclared identifier as key",
+				text: "proto { a -> fn() -> 1 }",
+			},
+			{
+				name: "proto with undeclared identifier in method",
+				text: "proto { 'a' -> fn() -> a }",
 			},
 			{
 				name: "var declaration with undeclared identifier expression",

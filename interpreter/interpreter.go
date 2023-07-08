@@ -323,6 +323,52 @@ func (i *interpreter) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 	return v, nil
 }
 
+func (i *interpreter) VisitMeExpr(e ast.MeExpr) (interface{}, error) {
+	if !i.env.HasDirectly("me") {
+		return nil, errors.RuntimeError{Msg: "'me' does not exist in immediate lexical scope"}
+	}
+
+	return i.env.Get("me"), nil
+}
+
+func (i *interpreter) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
+	ks := make([]string, len(e.MethodSet))
+	vs := map[string]value.VFunction{}
+
+	for idx, m := range e.MethodSet {
+		k, err := i.evalNode(m.K)
+
+		if err != nil {
+			return nil, err
+		}
+
+		kv, ok := k.(value.Value)
+
+		if !ok {
+			return nil, errors.RuntimeError{Msg: "Proto key could not be converted to a value"}
+		}
+
+		v, err := i.evalNode(m.M)
+
+		if err != nil {
+			return nil, err
+		}
+
+		vv, ok := v.(value.VFunction)
+
+		if !ok {
+			return nil, errors.RuntimeError{Msg: "Proto function could not be converted to a function"}
+		}
+
+		kstr := kv.Hash()
+
+		ks[idx] = kstr
+		vs[kstr] = vv
+	}
+
+	return value.NewProto(ks, vs), nil
+}
+
 func (i *interpreter) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {
 	for idx, n := range s.Names {
 		var val value.Value = value.VBottom{}

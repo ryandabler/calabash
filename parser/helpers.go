@@ -68,3 +68,54 @@ func (p *parser) commaExpressions() ([]ast.Expr, error) {
 
 	return es, nil
 }
+
+func (p *parser) protoMethods() ([]ast.ProtoMethod, error) {
+	methods := []ast.ProtoMethod{}
+	method, err := p.protoMethod()
+
+	if err != nil {
+		return nil, err
+	}
+
+	methods = append(methods, method)
+
+	for p.isThenEat(tokentype.COMMA) {
+		method, err = p.protoMethod()
+
+		if err != nil {
+			return nil, err
+		}
+
+		methods = append(methods, method)
+	}
+
+	return methods, nil
+}
+
+func (p *parser) protoMethod() (ast.ProtoMethod, error) {
+	k, err := p.fundamental()
+
+	if err != nil {
+		return ast.ProtoMethod{}, err
+	}
+
+	_, err = p.eat(tokentype.MINUS_GREAT)
+
+	if err != nil {
+		return ast.ProtoMethod{}, err
+	}
+
+	_, err = p.eat(tokentype.FN)
+
+	if err != nil {
+		return ast.ProtoMethod{}, err
+	}
+
+	m, err := p.function()
+
+	if err != nil {
+		return ast.ProtoMethod{}, err
+	}
+
+	return ast.ProtoMethod{K: k, M: m}, nil
+}

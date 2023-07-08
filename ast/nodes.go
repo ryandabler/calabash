@@ -16,6 +16,8 @@ const (
 	grouping_expr
 	func_expr
 	call_expr
+	me_expr
+	proto_expr
 	var_decl_stmt
 	ident
 	assign_stmt
@@ -168,6 +170,30 @@ func (e CallExpr) e() nodetype {
 
 func (e CallExpr) n() nodetype {
 	return call_expr
+}
+
+type MeExpr struct {
+	Token tokens.Token
+}
+
+func (e MeExpr) e() nodetype {
+	return me_expr
+}
+
+func (e MeExpr) n() nodetype {
+	return me_expr
+}
+
+type ProtoExpr struct {
+	MethodSet []ProtoMethod
+}
+
+func (e ProtoExpr) e() nodetype {
+	return proto_expr
+}
+
+func (e ProtoExpr) n() nodetype {
+	return proto_expr
 }
 
 type VarDeclStmt struct {

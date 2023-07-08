@@ -49,5 +49,7 @@ const (
 	RETURN
 	BOTTOM
 	MUT
+	ME
+	PROTO
 	EOF
 )

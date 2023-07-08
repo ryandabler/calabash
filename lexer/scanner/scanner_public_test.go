@@ -115,6 +115,8 @@ func TestRead(t *testing.T) {
 		{name: "newline", text: "\n", expected: []tokens.Token{}},
 		{name: "unrecognized symbol", text: "$", expected: []tokens.Token{}, willError: true},
 		{name: "mut", text: "mut", expected: []tokens.Token{tokens.New(tokentype.MUT, "mut", 0, 0)}},
+		{name: "me", text: "me", expected: []tokens.Token{tokens.New(tokentype.ME, "me", 0, 0)}},
+		{name: "proto", text: "proto", expected: []tokens.Token{tokens.New(tokentype.PROTO, "proto", 0, 0)}},
 	}
 
 	for _, e := range table {

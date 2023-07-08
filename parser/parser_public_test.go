@@ -222,6 +222,31 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 		return true
 	}
 
+	_, okA = a.(ast.MeExpr)
+	_, okB = b.(ast.MeExpr)
+
+	if okA && okB {
+		return true
+	}
+
+	tA16, okA := a.(ast.ProtoExpr)
+	tB16, okB := b.(ast.ProtoExpr)
+
+	if okA && okB {
+		if len(tA16.MethodSet) != len(tB16.MethodSet) {
+			return false
+		}
+
+		for i, m := range tA16.MethodSet {
+			if !nodesAreEqual(m.K, tB16.MethodSet[i].K) ||
+				!nodesAreEqual(m.M, tB16.MethodSet[i].M) {
+				return false
+			}
+		}
+
+		return true
+	}
+
 	return false
 }
 
@@ -355,6 +380,57 @@ func TestParse(t *testing.T) {
 							},
 							ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
 							ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "'a'", 0, 0)},
+						},
+					},
+				},
+			},
+			{
+				name: "funamental me",
+				text: "me",
+				expected: []ast.Node{
+					ast.MeExpr{Token: tokens.New(tokentype.ME, "me", 0, 0)},
+				},
+			},
+			{
+				name: "proto 1",
+				text: "proto { 4 -> fn () -> 1 }",
+				expected: []ast.Node{
+					ast.ProtoExpr{
+						MethodSet: []ast.ProtoMethod{
+							{
+								K: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
+								M: ast.FuncExpr{Body: ast.Block{
+									Contents: []ast.Node{
+										ast.ReturnStmt{Expr: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)}},
+									},
+								}},
+							},
+						},
+					},
+				},
+			},
+			{
+				name: "proto 2",
+				text: "proto { 4 -> fn () -> 1, true -> fn () { return 3; } }",
+				expected: []ast.Node{
+					ast.ProtoExpr{
+						MethodSet: []ast.ProtoMethod{
+							{
+								K: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
+								M: ast.FuncExpr{Body: ast.Block{
+									Contents: []ast.Node{
+										ast.ReturnStmt{Expr: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)}},
+									},
+								}},
+							},
+							{
+								K: ast.BooleanLiteralExpr{Value: tokens.New(tokentype.TRUE, "true", 0, 0)},
+								M: ast.FuncExpr{Body: ast.Block{
+									Contents: []ast.Node{
+										ast.ReturnStmt{Expr: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "3", 0, 0)}},
+									},
+								}},
+							},
 						},
 					},
 				},
@@ -1014,6 +1090,13 @@ func TestParse(t *testing.T) {
 			{name: "malformed return statement", text: "return 1 +;"},
 			{name: "malformed tuple expression 1", text: "[1,]"},
 			{name: "malformed tuple expression 2", text: "[1+]"},
+			{name: "malformed proto expression 1", text: "proto { }"},
+			{name: "malformed proto expression 2", text: "proto 'a' -> fn () -> 1 }"},
+			{name: "malformed proto expression 3", text: "proto { 'a' -> fn () -> 1"},
+			{name: "malformed proto expression 4", text: "proto { 'a' -> 2 }"},
+			{name: "malformed proto expression 5", text: "proto { 'a' -> fn () -> 1, 'b' -> 3 }"},
+			{name: "malformed proto expression 6", text: "proto { 'a' fn () -> 1 }"},
+			{name: "malformed proto expression 7", text: "proto { 'a' -> fn -> 1 }"},
 		}
 
 		for _, e := range table {

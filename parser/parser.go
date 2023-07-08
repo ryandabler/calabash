@@ -618,6 +618,28 @@ func (p *parser) tuple() (ast.Expr, error) {
 	return ast.TupleLiteralExpr{Contents: items}, nil
 }
 
+func (p *parser) proto() (ast.Expr, error) {
+	_, err := p.eat(tokentype.LEFT_BRACE)
+
+	if err != nil {
+		return nil, err
+	}
+
+	ms, err := p.protoMethods()
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.eat(tokentype.RIGHT_BRACE)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.ProtoExpr{MethodSet: ms}, nil
+}
+
 func (p *parser) fundamental() (ast.Expr, error) {
 	if p.atEnd() {
 		return nil, errors.ParseError{Msg: "Unexpected end of input"}
@@ -670,6 +692,15 @@ func (p *parser) fundamental() (ast.Expr, error) {
 
 	if p.isThenEat(tokentype.LEFT_BRACKET) {
 		return p.tuple()
+	}
+
+	if p.is(tokentype.ME) {
+		s, _ := p.eat(tokentype.ME)
+		return ast.MeExpr{Token: s}, nil
+	}
+
+	if p.isThenEat(tokentype.PROTO) {
+		return p.proto()
 	}
 
 	t := p.tokens[p.i]

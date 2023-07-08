@@ -17,6 +17,8 @@ type evisitor[T any] interface {
 	VisitIdentifierExpr(e ast.IdentifierExpr) (T, error)
 	VisitFuncExpr(e ast.FuncExpr) (T, error)
 	VisitCallExpr(e ast.CallExpr) (T, error)
+	VisitMeExpr(e ast.MeExpr) (T, error)
+	VisitProtoExpr(e ast.ProtoExpr) (T, error)
 }
 
 type svisitor[T any] interface {
@@ -95,6 +97,15 @@ func AcceptExpr[T any](e ast.Expr, v evisitor[T]) (T, error) {
 
 		return v.VisitCallExpr(e)
 
+	case ast.MeExpr:
+		e := e.(ast.MeExpr)
+
+		return v.VisitMeExpr(e)
+
+	case ast.ProtoExpr:
+		e := e.(ast.ProtoExpr)
+
+		return v.VisitProtoExpr(e)
 	}
 
 	return empty, errors.New("Unexpected expression")

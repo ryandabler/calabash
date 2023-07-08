@@ -118,6 +118,8 @@ FUNDAMENTAL
     | 'false'
     | FUNCTION
     | TUPLE
+    | PROTOTYPE
+    | 'me'
     ;
 
 FUNCTION
@@ -131,5 +133,18 @@ TUPLE
 FUNC_BODY
     : '->' EXPRESSION
     | BLOCK_STATEMENT
+    ;
+
+PROTOTYPE
+    : 'proto' '{' PROTO_METHODS '}'
+    ;
+
+PROTO_METHODS
+    : PROTO_METHODS ',' PROTO_METHOD
+    | PROTO_METHOD
+    ;
+
+PROTO_METHOD
+    : FUNDAMENTAL '->' FUNCTION
     ;
 ```

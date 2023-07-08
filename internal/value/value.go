@@ -20,6 +20,7 @@ const (
 	bottom
 	fn
 	tuple
+	proto
 )
 
 type Value interface {
@@ -141,5 +142,33 @@ func NewTuple(items []Value) VTuple {
 		hash: slice.Fold(items, "", func(i Value, acc string) string {
 			return acc + "," + i.Hash()
 		}),
+	}
+}
+
+type VProto struct {
+	Methods map[string]VFunction
+	keys    []string
+	hash    string
+}
+
+func (v VProto) v() vtype {
+	return proto
+}
+
+func (v VProto) Hash() string {
+	return v.hash
+}
+
+func NewProto(ks []string, ms map[string]VFunction) VProto {
+	hash := "proto:"
+
+	for _, k := range ks {
+		hash += fmt.Sprintf("%s->%s,", k, ms[k].Hash())
+	}
+
+	return VProto{
+		Methods: ms,
+		keys:    ks,
+		hash:    hash,
 	}
 }

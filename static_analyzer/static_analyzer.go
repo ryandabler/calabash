@@ -8,8 +8,16 @@ import (
 	"fmt"
 )
 
+type staticloc int
+
+const (
+	none staticloc = iota
+	proto_method
+)
+
 type analyzer struct {
 	env *environment.Environment[identRecord]
+	loc staticloc
 }
 
 func (a *analyzer) Analyze(ast []ast.Node) error {
@@ -139,6 +147,36 @@ func (a *analyzer) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 	return nil, nil
 }
 
+func (a *analyzer) VisitMeExpr(e ast.MeExpr) (interface{}, error) {
+	if a.loc != proto_method {
+		return nil, errors.StaticError{Msg: "'me' can only be referenced in proto methods"}
+	}
+
+	return nil, nil
+}
+
+func (a *analyzer) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
+	for _, m := range e.MethodSet {
+		err := a.analyzeNode(m.K)
+
+		if err != nil {
+			return nil, err
+		}
+
+		// Set static location to be `proto_method` to ensure any `me` references
+		// are accepted
+		a.loc = proto_method
+		err = a.analyzeNode(m.M)
+		a.loc = none
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return nil, nil
+}
+
 func (a *analyzer) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {
 	if len(s.Names) != len(s.Values) && len(s.Values) > 0 {
 		return nil, errors.StaticError{Msg: "If any variable is initialized, they all must be."}
@@ -255,5 +293,6 @@ func (a *analyzer) VisitRetStmt(s ast.ReturnStmt) (interface{}, error) {
 func New() *analyzer {
 	return &analyzer{
 		env: environment.New[identRecord](nil),
+		loc: none,
 	}
 }
