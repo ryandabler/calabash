@@ -1090,6 +1090,7 @@ func TestParse(t *testing.T) {
 			{name: "malformed return statement", text: "return 1 +;"},
 			{name: "malformed tuple expression 1", text: "[1,]"},
 			{name: "malformed tuple expression 2", text: "[1+]"},
+			{name: "malformed tuple expression 3", text: "[1"},
 			{name: "malformed proto expression 1", text: "proto { }"},
 			{name: "malformed proto expression 2", text: "proto 'a' -> fn () -> 1 }"},
 			{name: "malformed proto expression 3", text: "proto { 'a' -> fn () -> 1"},
