@@ -28,68 +28,68 @@ type Value interface {
 	Hash() string
 }
 
-type VNumber struct {
+type Number struct {
 	Value float64
 }
 
-func (v VNumber) v() vtype {
+func (v Number) v() vtype {
 	return num
 }
 
-func (v VNumber) Hash() string {
+func (v Number) Hash() string {
 	return fmt.Sprintf("n:%v", v)
 }
 
-type VString struct {
+type String struct {
 	Value string
 }
 
-func (v VString) v() vtype {
+func (v String) v() vtype {
 	return str
 }
 
-func (v VString) Hash() string {
+func (v String) Hash() string {
 	return fmt.Sprintf("s:%q", v.Value)
 }
 
-type VBottom struct{}
+type Bottom struct{}
 
-func (v VBottom) v() vtype {
+func (v Bottom) v() vtype {
 	return bottom
 }
 
-func (v VBottom) Hash() string {
+func (v Bottom) Hash() string {
 	return "btm"
 }
 
-type VBoolean struct {
+type Boolean struct {
 	Value bool
 }
 
-func (v VBoolean) v() vtype {
+func (v Boolean) v() vtype {
 	return boolean
 }
 
-func (v VBoolean) Hash() string {
+func (v Boolean) Hash() string {
 	return fmt.Sprintf("b:%t", v.Value)
 }
 
-type VFunction struct {
+type Function struct {
 	Params []ast.Identifier
 	Body   ast.Block
 	Apps   []Value
 	hash   string
 }
 
-func (v VFunction) v() vtype {
+func (v Function) v() vtype {
 	return fn
 }
 
-func (v VFunction) Hash() string {
+func (v Function) Hash() string {
 	return v.hash
 }
 
-func (v VFunction) Apply(vs []Value) VFunction {
+func (v Function) Apply(vs []Value) Function {
 	f := NewFunction()
 	f.Params = v.Params
 	f.Body = v.Body
@@ -98,11 +98,11 @@ func (v VFunction) Apply(vs []Value) VFunction {
 	return f
 }
 
-func (v VFunction) Arity() int {
+func (v Function) Arity() int {
 	return len(v.Params) - len(v.Apps)
 }
 
-func (v VFunction) Call(e Evaluator) (interface{}, error) {
+func (v Function) Call(e Evaluator) (interface{}, error) {
 	rVal, err := e.Eval(v.Body.Contents)
 
 	if err != nil {
@@ -110,7 +110,7 @@ func (v VFunction) Call(e Evaluator) (interface{}, error) {
 	}
 
 	if rVal == nil {
-		return VBottom{}, nil
+		return Bottom{}, nil
 	}
 
 	return rVal, nil
@@ -119,25 +119,25 @@ func (v VFunction) Call(e Evaluator) (interface{}, error) {
 // Because functions are always unique, to populate the unexported
 // hash we need to manually construct functions in this package
 // with the UUID supplied
-func NewFunction() VFunction {
-	return VFunction{hash: uuid.V4()}
+func NewFunction() Function {
+	return Function{hash: uuid.V4()}
 }
 
-type VTuple struct {
+type Tuple struct {
 	Items []Value
 	hash  string
 }
 
-func (v VTuple) v() vtype {
+func (Tuple) v() vtype {
 	return tuple
 }
 
-func (v VTuple) Hash() string {
+func (v Tuple) Hash() string {
 	return fmt.Sprintf("tpl:%s", v.hash)
 }
 
-func NewTuple(items []Value) VTuple {
-	return VTuple{
+func NewTuple(items []Value) Tuple {
+	return Tuple{
 		Items: items,
 		hash: slice.Fold(items, "", func(i Value, acc string) string {
 			return acc + "," + i.Hash()
@@ -145,28 +145,28 @@ func NewTuple(items []Value) VTuple {
 	}
 }
 
-type VProto struct {
-	Methods map[string]VFunction
+type Proto struct {
+	Methods map[string]Function
 	keys    []string
 	hash    string
 }
 
-func (v VProto) v() vtype {
+func (v Proto) v() vtype {
 	return proto
 }
 
-func (v VProto) Hash() string {
+func (v Proto) Hash() string {
 	return v.hash
 }
 
-func NewProto(ks []string, ms map[string]VFunction) VProto {
+func NewProto(ks []string, ms map[string]Function) Proto {
 	hash := "proto:"
 
 	for _, k := range ks {
 		hash += fmt.Sprintf("%s->%s,", k, ms[k].Hash())
 	}
 
-	return VProto{
+	return Proto{
 		Methods: ms,
 		keys:    ks,
 		hash:    hash,

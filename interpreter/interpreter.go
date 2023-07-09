@@ -70,19 +70,19 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 			b = !b
 		}
 
-		return value.VBoolean{Value: b}, nil
+		return value.Boolean{Value: b}, nil
 	}
 
 	if isBooleanOp(op) && areBools(l, r) {
-		lb, _ := l.(value.VBoolean)
-		rb, _ := r.(value.VBoolean)
+		lb, _ := l.(value.Boolean)
+		rb, _ := r.(value.Boolean)
 
 		if op == tokentype.AMPERSAND_AMPERSAND {
-			return value.VBoolean{Value: lb.Value && rb.Value}, nil
+			return value.Boolean{Value: lb.Value && rb.Value}, nil
 		}
 
 		if op == tokentype.STROKE_STROKE {
-			return value.VBoolean{Value: lb.Value || rb.Value}, nil
+			return value.Boolean{Value: lb.Value || rb.Value}, nil
 		}
 	}
 
@@ -93,22 +93,22 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 	// The '+' operator is overloaded for different data types. The left and right
 	// sides must be of the same type but they could be many different types.
 	if op == tokentype.PLUS {
-		ln, okl := l.(value.VNumber)
-		rn, okr := r.(value.VNumber)
+		ln, okl := l.(value.Number)
+		rn, okr := r.(value.Number)
 
 		if okl && okr {
-			val := value.VNumber{
+			val := value.Number{
 				Value: ln.Value + rn.Value,
 			}
 
 			return val, nil
 		}
 
-		ls, okl := l.(value.VString)
-		rs, okr := r.(value.VString)
+		ls, okl := l.(value.String)
+		rs, okr := r.(value.String)
 
 		if okl && okr {
-			val := value.VString{
+			val := value.String{
 				Value: ls.Value + rs.Value,
 			}
 
@@ -119,42 +119,42 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 	}
 
 	if isNumericOp(op) && areNumbers(l, r) {
-		ln, _ := l.(value.VNumber)
-		rn, _ := r.(value.VNumber)
+		ln, _ := l.(value.Number)
+		rn, _ := r.(value.Number)
 		var val value.Value
 
 		switch op {
 		case tokentype.MINUS:
-			val = value.VNumber{
+			val = value.Number{
 				Value: ln.Value - rn.Value,
 			}
 
 		case tokentype.ASTERISK:
-			val = value.VNumber{
+			val = value.Number{
 				Value: ln.Value * rn.Value,
 			}
 
 		case tokentype.SLASH:
-			val = value.VNumber{
+			val = value.Number{
 				Value: ln.Value / rn.Value,
 			}
 
 		case tokentype.ASTERISK_ASTERISK:
-			val = value.VNumber{
+			val = value.Number{
 				Value: math.Pow(ln.Value, rn.Value),
 			}
 
 		case tokentype.GREAT:
-			val = value.VBoolean{Value: ln.Value > rn.Value}
+			val = value.Boolean{Value: ln.Value > rn.Value}
 
 		case tokentype.GREAT_EQUAL:
-			val = value.VBoolean{Value: ln.Value >= rn.Value}
+			val = value.Boolean{Value: ln.Value >= rn.Value}
 
 		case tokentype.LESS:
-			val = value.VBoolean{Value: ln.Value < rn.Value}
+			val = value.Boolean{Value: ln.Value < rn.Value}
 
 		case tokentype.LESS_EQUAL:
-			val = value.VBoolean{Value: ln.Value <= rn.Value}
+			val = value.Boolean{Value: ln.Value <= rn.Value}
 		}
 
 		return val, nil
@@ -174,7 +174,7 @@ func (i *interpreter) VisitNumLitExpr(e ast.NumericLiteralExpr) (interface{}, er
 		return nil, err
 	}
 
-	v := value.VNumber{
+	v := value.Number{
 		Value: n,
 	}
 
@@ -184,7 +184,7 @@ func (i *interpreter) VisitNumLitExpr(e ast.NumericLiteralExpr) (interface{}, er
 func (i *interpreter) VisitStrLitExpr(e ast.StringLiteralExpr) (interface{}, error) {
 	rs := []rune(e.Value.Lexeme)
 	l := len(rs)
-	str := value.VString{Value: string(rs[1 : l-1])}
+	str := value.String{Value: string(rs[1 : l-1])}
 
 	return str, nil
 }
@@ -205,7 +205,7 @@ func (i *interpreter) VisitUnaryExpr(e ast.UnaryExpr) (interface{}, error) {
 	switch op {
 	case tokentype.MINUS:
 		{
-			if val, ok := expr.(value.VNumber); ok {
+			if val, ok := expr.(value.Number); ok {
 				val.Value *= -1
 				return val, nil
 			}
@@ -218,11 +218,11 @@ func (i *interpreter) VisitUnaryExpr(e ast.UnaryExpr) (interface{}, error) {
 }
 
 func (i *interpreter) VisitBottomLitExpr(e ast.BottomLiteralExpr) (interface{}, error) {
-	return value.VBottom{}, nil
+	return value.Bottom{}, nil
 }
 
 func (i *interpreter) VisitBooleanLitExpr(e ast.BooleanLiteralExpr) (interface{}, error) {
-	return value.VBoolean{Value: e.Value.Type == tokentype.TRUE}, nil
+	return value.Boolean{Value: e.Value.Type == tokentype.TRUE}, nil
 }
 
 func (i *interpreter) VisitTupleLitExpr(e ast.TupleLiteralExpr) (interface{}, error) {
@@ -268,7 +268,7 @@ func (i *interpreter) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 		return nil, err
 	}
 
-	vfunc, ok := callee.(value.VFunction)
+	vfunc, ok := callee.(value.Function)
 
 	if !ok {
 		return nil, errors.RuntimeError{Msg: "Attempting to call a non-functional value."}
@@ -333,7 +333,7 @@ func (i *interpreter) VisitMeExpr(e ast.MeExpr) (interface{}, error) {
 
 func (i *interpreter) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 	ks := make([]string, len(e.MethodSet))
-	vs := map[string]value.VFunction{}
+	vs := map[string]value.Function{}
 
 	for idx, m := range e.MethodSet {
 		k, err := i.evalNode(m.K)
@@ -354,7 +354,7 @@ func (i *interpreter) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 			return nil, err
 		}
 
-		vv, ok := v.(value.VFunction)
+		vv, ok := v.(value.Function)
 
 		if !ok {
 			return nil, errors.RuntimeError{Msg: "Proto function could not be converted to a function"}
@@ -371,7 +371,7 @@ func (i *interpreter) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 
 func (i *interpreter) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {
 	for idx, n := range s.Names {
-		var val value.Value = value.VBottom{}
+		var val value.Value = value.Bottom{}
 		var ok bool
 
 		// If initial values have been specified for these declarations,
@@ -434,7 +434,7 @@ func (i *interpreter) VisitIfStmt(s ast.IfStmt) (interface{}, error) {
 		return nil, err
 	}
 
-	cond, ok := vCond.(value.VBoolean)
+	cond, ok := vCond.(value.Boolean)
 
 	if !ok {
 		return nil, errors.RuntimeError{Msg: "If condition must resolve to a boolean value."}

@@ -27,7 +27,7 @@ func isBooleanOp(op tokentype.Tokentype) bool {
 
 func areNumbers(ns ...interface{}) bool {
 	for _, n := range ns {
-		_, ok := n.(value.VNumber)
+		_, ok := n.(value.Number)
 
 		if !ok {
 			return false
@@ -39,7 +39,7 @@ func areNumbers(ns ...interface{}) bool {
 
 func areBools(bs ...interface{}) bool {
 	for _, n := range bs {
-		_, ok := n.(value.VBoolean)
+		_, ok := n.(value.Boolean)
 
 		if !ok {
 			return false
