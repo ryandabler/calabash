@@ -244,7 +244,7 @@ func (i *interpreter) VisitTupleLitExpr(e ast.TupleLiteralExpr) (interface{}, er
 		vs[idx] = v
 	}
 
-	return value.NewTuple(vs), nil
+	return &value.Tuple{Items: vs}, nil
 }
 
 func (i *interpreter) VisitIdentifierExpr(e ast.IdentifierExpr) (interface{}, error) {
@@ -252,9 +252,10 @@ func (i *interpreter) VisitIdentifierExpr(e ast.IdentifierExpr) (interface{}, er
 }
 
 func (i *interpreter) VisitFuncExpr(e ast.FuncExpr) (interface{}, error) {
-	fn := value.NewFunction()
-	fn.Body = e.Body
-	fn.Params = e.Params
+	fn := &value.Function{
+		Body:   e.Body,
+		Params: e.Params,
+	}
 
 	return fn, nil
 }
@@ -366,7 +367,7 @@ func (i *interpreter) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 		vs[kstr] = vv
 	}
 
-	return value.NewProto(ks, vs), nil
+	return &value.Proto{Keys: ks, Methods: vs}, nil
 }
 
 func (i *interpreter) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {

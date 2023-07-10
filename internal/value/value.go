@@ -37,7 +37,7 @@ func (v *Number) v() vtype {
 }
 
 func (v *Number) Hash() string {
-	return fmt.Sprintf("n:%v", v)
+	return fmt.Sprintf("n:%v", v.Value)
 }
 
 type String struct {
@@ -86,16 +86,22 @@ func (v *Function) v() vtype {
 }
 
 func (v *Function) Hash() string {
+	if v.hash == "" {
+		// Because functions are always unique, to populate the unexported
+		// hash we need to manually construct functions in this package
+		// with the UUID supplied
+		v.hash = uuid.V4()
+	}
+
 	return v.hash
 }
 
 func (v *Function) Apply(vs []Value) *Function {
-	f := NewFunction()
-	f.Params = v.Params
-	f.Body = v.Body
-	f.Apps = append(v.Apps, vs...)
-
-	return f
+	return &Function{
+		Params: v.Params,
+		Body:   v.Body,
+		Apps:   append(v.Apps, vs...),
+	}
 }
 
 func (v *Function) Arity() int {
@@ -116,13 +122,6 @@ func (v *Function) Call(e Evaluator) (interface{}, error) {
 	return rVal, nil
 }
 
-// Because functions are always unique, to populate the unexported
-// hash we need to manually construct functions in this package
-// with the UUID supplied
-func NewFunction() *Function {
-	return &Function{hash: uuid.V4()}
-}
-
 type Tuple struct {
 	Items []Value
 	hash  string
@@ -133,21 +132,18 @@ func (v *Tuple) v() vtype {
 }
 
 func (v *Tuple) Hash() string {
-	return fmt.Sprintf("tpl:%s", v.hash)
-}
-
-func NewTuple(items []Value) *Tuple {
-	return &Tuple{
-		Items: items,
-		hash: slice.Fold(items, "", func(i Value, acc string) string {
+	if v.hash == "" {
+		v.hash = fmt.Sprintf("tpl:%s", slice.Fold(v.Items, "", func(i Value, acc string) string {
 			return acc + "," + i.Hash()
-		}),
+		}))
 	}
+
+	return v.hash
 }
 
 type Proto struct {
 	Methods map[string]*Function
-	keys    []string
+	Keys    []string
 	hash    string
 }
 
@@ -156,19 +152,11 @@ func (v *Proto) v() vtype {
 }
 
 func (v *Proto) Hash() string {
+	if v.hash == "" {
+		v.hash = slice.Fold(v.Keys, "prt:", func(k string, acc string) string {
+			return acc + k + "->" + v.Methods[k].Hash()
+		})
+	}
+
 	return v.hash
-}
-
-func NewProto(ks []string, ms map[string]*Function) *Proto {
-	hash := "proto:"
-
-	for _, k := range ks {
-		hash += fmt.Sprintf("%s->%s,", k, ms[k].Hash())
-	}
-
-	return &Proto{
-		Methods: ms,
-		keys:    ks,
-		hash:    hash,
-	}
 }
