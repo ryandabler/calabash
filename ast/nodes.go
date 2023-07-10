@@ -4,27 +4,7 @@ import "calabash/lexer/tokens"
 
 type nodetype int
 
-const (
-	binary_expr nodetype = iota
-	unary_expr
-	numeric_lit_expr
-	string_lit_expr
-	bottom_lit_expr
-	boolean_lit_expr
-	tuple_lit_expr
-	identifer_expr
-	grouping_expr
-	func_expr
-	call_expr
-	me_expr
-	proto_expr
-	var_decl_stmt
-	ident
-	assign_stmt
-	if_stmt
-	block
-	ret_stmt
-)
+const nt nodetype = iota
 
 type Node interface {
 	n() nodetype
@@ -42,11 +22,11 @@ type BinaryExpr struct {
 }
 
 func (e BinaryExpr) e() nodetype {
-	return binary_expr
+	return nt
 }
 
 func (e BinaryExpr) n() nodetype {
-	return binary_expr
+	return nt
 }
 
 type UnaryExpr struct {
@@ -55,11 +35,11 @@ type UnaryExpr struct {
 }
 
 func (e UnaryExpr) e() nodetype {
-	return unary_expr
+	return nt
 }
 
 func (e UnaryExpr) n() nodetype {
-	return unary_expr
+	return nt
 }
 
 type NumericLiteralExpr struct {
@@ -67,11 +47,11 @@ type NumericLiteralExpr struct {
 }
 
 func (e NumericLiteralExpr) e() nodetype {
-	return numeric_lit_expr
+	return nt
 }
 
 func (e NumericLiteralExpr) n() nodetype {
-	return numeric_lit_expr
+	return nt
 }
 
 type StringLiteralExpr struct {
@@ -79,11 +59,11 @@ type StringLiteralExpr struct {
 }
 
 func (e StringLiteralExpr) e() nodetype {
-	return string_lit_expr
+	return nt
 }
 
 func (e StringLiteralExpr) n() nodetype {
-	return string_lit_expr
+	return nt
 }
 
 type BottomLiteralExpr struct {
@@ -91,11 +71,11 @@ type BottomLiteralExpr struct {
 }
 
 func (e BottomLiteralExpr) e() nodetype {
-	return bottom_lit_expr
+	return nt
 }
 
 func (e BottomLiteralExpr) n() nodetype {
-	return bottom_lit_expr
+	return nt
 }
 
 type BooleanLiteralExpr struct {
@@ -103,11 +83,11 @@ type BooleanLiteralExpr struct {
 }
 
 func (e BooleanLiteralExpr) e() nodetype {
-	return boolean_lit_expr
+	return nt
 }
 
 func (e BooleanLiteralExpr) n() nodetype {
-	return boolean_lit_expr
+	return nt
 }
 
 type TupleLiteralExpr struct {
@@ -115,11 +95,11 @@ type TupleLiteralExpr struct {
 }
 
 func (e TupleLiteralExpr) e() nodetype {
-	return tuple_lit_expr
+	return nt
 }
 
 func (e TupleLiteralExpr) n() nodetype {
-	return tuple_lit_expr
+	return nt
 }
 
 type IdentifierExpr struct {
@@ -127,11 +107,11 @@ type IdentifierExpr struct {
 }
 
 func (e IdentifierExpr) e() nodetype {
-	return identifer_expr
+	return nt
 }
 
 func (e IdentifierExpr) n() nodetype {
-	return identifer_expr
+	return nt
 }
 
 type GroupingExpr struct {
@@ -139,11 +119,11 @@ type GroupingExpr struct {
 }
 
 func (e GroupingExpr) e() nodetype {
-	return grouping_expr
+	return nt
 }
 
 func (e GroupingExpr) n() nodetype {
-	return grouping_expr
+	return nt
 }
 
 type FuncExpr struct {
@@ -152,11 +132,11 @@ type FuncExpr struct {
 }
 
 func (e FuncExpr) e() nodetype {
-	return func_expr
+	return nt
 }
 
 func (e FuncExpr) n() nodetype {
-	return func_expr
+	return nt
 }
 
 type CallExpr struct {
@@ -165,11 +145,11 @@ type CallExpr struct {
 }
 
 func (e CallExpr) e() nodetype {
-	return call_expr
+	return nt
 }
 
 func (e CallExpr) n() nodetype {
-	return call_expr
+	return nt
 }
 
 type MeExpr struct {
@@ -177,11 +157,11 @@ type MeExpr struct {
 }
 
 func (e MeExpr) e() nodetype {
-	return me_expr
+	return nt
 }
 
 func (e MeExpr) n() nodetype {
-	return me_expr
+	return nt
 }
 
 type ProtoExpr struct {
@@ -189,11 +169,11 @@ type ProtoExpr struct {
 }
 
 func (e ProtoExpr) e() nodetype {
-	return proto_expr
+	return nt
 }
 
 func (e ProtoExpr) n() nodetype {
-	return proto_expr
+	return nt
 }
 
 type VarDeclStmt struct {
@@ -202,7 +182,7 @@ type VarDeclStmt struct {
 }
 
 func (s VarDeclStmt) n() nodetype {
-	return var_decl_stmt
+	return nt
 }
 
 type Identifier struct {
@@ -211,7 +191,7 @@ type Identifier struct {
 }
 
 func (s Identifier) n() nodetype {
-	return ident
+	return nt
 }
 
 type AssignmentStmt struct {
@@ -220,7 +200,7 @@ type AssignmentStmt struct {
 }
 
 func (s AssignmentStmt) n() nodetype {
-	return assign_stmt
+	return nt
 }
 
 type IfStmt struct {
@@ -231,7 +211,7 @@ type IfStmt struct {
 }
 
 func (s IfStmt) n() nodetype {
-	return if_stmt
+	return nt
 }
 
 type Block struct {
@@ -239,7 +219,7 @@ type Block struct {
 }
 
 func (s Block) n() nodetype {
-	return block
+	return nt
 }
 
 type ReturnStmt struct {
@@ -247,5 +227,5 @@ type ReturnStmt struct {
 }
 
 func (s ReturnStmt) n() nodetype {
-	return ret_stmt
+	return nt
 }

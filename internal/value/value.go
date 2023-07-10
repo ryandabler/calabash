@@ -13,15 +13,7 @@ type Evaluator interface {
 
 type vtype int
 
-const (
-	num vtype = iota
-	str
-	boolean
-	bottom
-	fn
-	tuple
-	proto
-)
+const value vtype = iota
 
 type Value interface {
 	v() vtype
@@ -33,7 +25,7 @@ type Number struct {
 }
 
 func (v *Number) v() vtype {
-	return num
+	return value
 }
 
 func (v *Number) Hash() string {
@@ -45,7 +37,7 @@ type String struct {
 }
 
 func (v *String) v() vtype {
-	return str
+	return value
 }
 
 func (v *String) Hash() string {
@@ -55,7 +47,7 @@ func (v *String) Hash() string {
 type Bottom struct{}
 
 func (v *Bottom) v() vtype {
-	return bottom
+	return value
 }
 
 func (v *Bottom) Hash() string {
@@ -67,7 +59,7 @@ type Boolean struct {
 }
 
 func (v *Boolean) v() vtype {
-	return boolean
+	return value
 }
 
 func (v *Boolean) Hash() string {
@@ -82,7 +74,7 @@ type Function struct {
 }
 
 func (v *Function) v() vtype {
-	return fn
+	return value
 }
 
 func (v *Function) Hash() string {
@@ -128,7 +120,7 @@ type Tuple struct {
 }
 
 func (v *Tuple) v() vtype {
-	return tuple
+	return value
 }
 
 func (v *Tuple) Hash() string {
@@ -148,7 +140,7 @@ type Proto struct {
 }
 
 func (v *Proto) v() vtype {
-	return proto
+	return value
 }
 
 func (v *Proto) Hash() string {
