@@ -26,7 +26,7 @@ func TestEval(t *testing.T) {
 				name: "literal string 1",
 				text: "'abcd'",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.String{Value: "abcd"}) {
+					if !reflect.DeepEqual(v, &value.String{Value: "abcd"}) {
 						return errors.New("Values does not equal \"abcd\"")
 					}
 
@@ -37,7 +37,7 @@ func TestEval(t *testing.T) {
 				name: "literal string 2",
 				text: "\"abcd\"",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.String{Value: "abcd"}) {
+					if !reflect.DeepEqual(v, &value.String{Value: "abcd"}) {
 						return errors.New("Values does not equal \"abcd\"")
 					}
 
@@ -48,7 +48,7 @@ func TestEval(t *testing.T) {
 				name: "literal number 1",
 				text: "123",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Number{Value: 123}) {
+					if !reflect.DeepEqual(v, &value.Number{Value: 123}) {
 						return errors.New("Values does not equal 123")
 					}
 
@@ -59,7 +59,7 @@ func TestEval(t *testing.T) {
 				name: "literal number 2",
 				text: "123.4",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Number{Value: 123.4}) {
+					if !reflect.DeepEqual(v, &value.Number{Value: 123.4}) {
 						return errors.New("Values does not equal 123.4")
 					}
 
@@ -70,7 +70,7 @@ func TestEval(t *testing.T) {
 				name: "literal boolean 1",
 				text: "true",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Boolean{Value: true}) {
+					if !reflect.DeepEqual(v, &value.Boolean{Value: true}) {
 						return errors.New("Values does not equal true")
 					}
 
@@ -81,7 +81,7 @@ func TestEval(t *testing.T) {
 				name: "literal boolean 2",
 				text: "false",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Boolean{Value: false}) {
+					if !reflect.DeepEqual(v, &value.Boolean{Value: false}) {
 						return errors.New("Values does not equal false")
 					}
 
@@ -92,7 +92,7 @@ func TestEval(t *testing.T) {
 				name: "literal bottom",
 				text: "bottom",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Bottom{}) {
+					if !reflect.DeepEqual(v, &value.Bottom{}) {
 						return errors.New("Values does not equal bottom")
 					}
 
@@ -103,7 +103,7 @@ func TestEval(t *testing.T) {
 				name: "literal function 1",
 				text: "fn (a) {}",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					vfunc, ok := v.(value.Function)
+					vfunc, ok := v.(*value.Function)
 
 					if !ok {
 						return errors.New("Did not receive a function value")
@@ -128,7 +128,7 @@ func TestEval(t *testing.T) {
 				name: "literal function 2",
 				text: "fn (a, b) -> 1 + 2",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					vfunc, ok := v.(value.Function)
+					vfunc, ok := v.(*value.Function)
 
 					if !ok {
 						return errors.New("Did not receive a function value")
@@ -167,21 +167,21 @@ func TestEval(t *testing.T) {
 				name: "literal tuple 1",
 				text: "[1, \"a\", fn() -> 1]",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					tuple, ok := v.(value.Tuple)
+					tuple, ok := v.(*value.Tuple)
 
 					if !ok {
 						return errors.New("Literal value was not a tuple")
 					}
 
-					if tuple.Items[0] != (value.Number{Value: 1}) {
+					if !reflect.DeepEqual(tuple.Items[0], &value.Number{Value: 1}) {
 						return errors.New("First tuple item is not equal to 1")
 					}
 
-					if tuple.Items[1] != (value.String{Value: "a"}) {
+					if !reflect.DeepEqual(tuple.Items[1], &value.String{Value: "a"}) {
 						return errors.New("Second tuple item is not equal to \"a\"")
 					}
 
-					fn, ok := tuple.Items[2].(value.Function)
+					fn, ok := tuple.Items[2].(*value.Function)
 
 					if !ok {
 						return errors.New("Third tuple item is not a function")
@@ -201,7 +201,7 @@ func TestEval(t *testing.T) {
 				name: "literal tuple 2",
 				text: "[]",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Tuple{Items: []value.Value{}}) {
+					if !reflect.DeepEqual(v, &value.Tuple{Items: []value.Value{}}) {
 						return errors.New("Tuple should be empty")
 					}
 
@@ -212,7 +212,7 @@ func TestEval(t *testing.T) {
 				name: "binary addition 1",
 				text: "1 + 1",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Number{Value: 2}) {
+					if !reflect.DeepEqual(v, &value.Number{Value: 2}) {
 						return errors.New("Values does not equal 2")
 					}
 
@@ -223,7 +223,7 @@ func TestEval(t *testing.T) {
 				name: "binary addition 2",
 				text: "'1' + '1'",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.String{Value: "11"}) {
+					if !reflect.DeepEqual(v, &value.String{Value: "11"}) {
 						return errors.New("Values does not equal '11'")
 					}
 
@@ -234,7 +234,7 @@ func TestEval(t *testing.T) {
 				name: "binary subtraction",
 				text: "2 - 5",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Number{Value: -3}) {
+					if !reflect.DeepEqual(v, &value.Number{Value: -3}) {
 						return errors.New("Values does not equal -3")
 					}
 
@@ -245,7 +245,7 @@ func TestEval(t *testing.T) {
 				name: "binary multiplication",
 				text: "2 * 5",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Number{Value: 10}) {
+					if !reflect.DeepEqual(v, &value.Number{Value: 10}) {
 						return errors.New("Values does not equal 10")
 					}
 
@@ -256,7 +256,7 @@ func TestEval(t *testing.T) {
 				name: "binary division",
 				text: "5 / 3",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Number{Value: 5.0 / 3.0}) {
+					if !reflect.DeepEqual(v, &value.Number{Value: 5.0 / 3.0}) {
 						return errors.New(fmt.Sprintf("Values does not equal %f", 5.0/3.0))
 					}
 
@@ -267,7 +267,7 @@ func TestEval(t *testing.T) {
 				name: "binary exponentiation",
 				text: "5 ** 2",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Number{Value: 25}) {
+					if !reflect.DeepEqual(v, &value.Number{Value: 25}) {
 						return errors.New("Values does not equal 25")
 					}
 
@@ -278,7 +278,7 @@ func TestEval(t *testing.T) {
 				name: "binary greater",
 				text: "5 > 2",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Boolean{Value: true}) {
+					if !reflect.DeepEqual(v, &value.Boolean{Value: true}) {
 						return errors.New("Values does not equal true")
 					}
 
@@ -289,7 +289,7 @@ func TestEval(t *testing.T) {
 				name: "binary greater or equal",
 				text: "5 >= 2",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Boolean{Value: true}) {
+					if !reflect.DeepEqual(v, &value.Boolean{Value: true}) {
 						return errors.New("Values does not equal true")
 					}
 
@@ -300,7 +300,7 @@ func TestEval(t *testing.T) {
 				name: "binary lesser",
 				text: "5 < 2",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Boolean{Value: false}) {
+					if !reflect.DeepEqual(v, &value.Boolean{Value: false}) {
 						return errors.New("Values does not equal false")
 					}
 
@@ -311,7 +311,7 @@ func TestEval(t *testing.T) {
 				name: "binary lesser or equal",
 				text: "5 <= 2",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Boolean{Value: false}) {
+					if !reflect.DeepEqual(v, &value.Boolean{Value: false}) {
 						return errors.New("Values does not equal false")
 					}
 
@@ -322,7 +322,7 @@ func TestEval(t *testing.T) {
 				name: "binary equal to",
 				text: "2 == 3",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Boolean{Value: false}) {
+					if !reflect.DeepEqual(v, &value.Boolean{Value: false}) {
 						return errors.New("Values does not equal false")
 					}
 
@@ -333,7 +333,7 @@ func TestEval(t *testing.T) {
 				name: "binary equal to (tuples) 1",
 				text: "[1, \"a\", [true, bottom]] == [1, \"a\", [true, bottom]]",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Boolean{Value: true}) {
+					if !reflect.DeepEqual(v, &value.Boolean{Value: true}) {
 						return errors.New("Tuples should be deeply equal")
 					}
 
@@ -344,7 +344,7 @@ func TestEval(t *testing.T) {
 				name: "binary equal to (tuples) 2",
 				text: "[1, \"a\", [true, bottom]] == [\"a\", [true, bottom], 1]",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Boolean{Value: false}) {
+					if !reflect.DeepEqual(v, &value.Boolean{Value: false}) {
 						return errors.New("Out of order tuples should not be deeply equal")
 					}
 
@@ -355,7 +355,7 @@ func TestEval(t *testing.T) {
 				name: "binary equal to (tuples) 3",
 				text: "[1, \"a\", [true, bottom]] == [\"a\", [true, bottom]]",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Boolean{Value: false}) {
+					if !reflect.DeepEqual(v, &value.Boolean{Value: false}) {
 						return errors.New("Tuples with different numbers of elements should not be deeply equal")
 					}
 
@@ -366,7 +366,7 @@ func TestEval(t *testing.T) {
 				name: "binary not equal to",
 				text: "2 != 3",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Boolean{Value: true}) {
+					if !reflect.DeepEqual(v, &value.Boolean{Value: true}) {
 						return errors.New("Values does not equal true")
 					}
 
@@ -377,7 +377,7 @@ func TestEval(t *testing.T) {
 				name: "binary boolean and",
 				text: "true && false",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Boolean{Value: false}) {
+					if !reflect.DeepEqual(v, &value.Boolean{Value: false}) {
 						return errors.New("Values does not equal false")
 					}
 
@@ -388,7 +388,7 @@ func TestEval(t *testing.T) {
 				name: "binary boolean or",
 				text: "true || false",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Boolean{Value: true}) {
+					if !reflect.DeepEqual(v, &value.Boolean{Value: true}) {
 						return errors.New("Values does not equal true")
 					}
 
@@ -399,7 +399,7 @@ func TestEval(t *testing.T) {
 				name: "grouping expression",
 				text: "(5 ** 2)",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Number{Value: 25}) {
+					if !reflect.DeepEqual(v, &value.Number{Value: 25}) {
 						return errors.New("Values does not equal 25")
 					}
 
@@ -410,7 +410,7 @@ func TestEval(t *testing.T) {
 				name: "unary minus",
 				text: "-5",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Number{Value: -5}) {
+					if !reflect.DeepEqual(v, &value.Number{Value: -5}) {
 						return errors.New("Values does not equal -5")
 					}
 
@@ -425,7 +425,7 @@ func TestEval(t *testing.T) {
 						return errors.New("Variable 'a' should be present in first layer of state")
 					}
 
-					if i.Env.Get("a") != (value.Bottom{}) {
+					if !reflect.DeepEqual(i.Env.Get("a"), &value.Bottom{}) {
 						return errors.New("Undefined variables should be initialized with bottom value")
 					}
 
@@ -444,7 +444,7 @@ func TestEval(t *testing.T) {
 						return errors.New("Variable 'b' should be present in first layer of state")
 					}
 
-					if i.Env.Get("a") != (value.Bottom{}) && i.Env.Get("b") != (value.Bottom{}) {
+					if !reflect.DeepEqual(i.Env.Get("a"), &value.Bottom{}) && !reflect.DeepEqual(i.Env.Get("b"), &value.Bottom{}) {
 						return errors.New("Undefined variables should be initialized with bottom value")
 					}
 
@@ -455,11 +455,11 @@ func TestEval(t *testing.T) {
 				name: "multi variable declaration (with init) 1",
 				text: "let a, b = 1, 3 + 4;",
 				validate: func(_ interface{}, i interpreter.IntpState) error {
-					if i.Env.Get("a") != (value.Number{Value: 1}) {
+					if !reflect.DeepEqual(i.Env.Get("a"), &value.Number{Value: 1}) {
 						return errors.New("Variable 'a' was not set to value 1")
 					}
 
-					if i.Env.Get("b") != (value.Number{Value: 7}) {
+					if !reflect.DeepEqual(i.Env.Get("b"), &value.Number{Value: 7}) {
 						return errors.New("Variable 'b' was not resolved to value 7")
 					}
 
@@ -470,11 +470,11 @@ func TestEval(t *testing.T) {
 				name: "multi variable declaration (with init) 2",
 				text: "let a, b = 1, a;",
 				validate: func(_ interface{}, i interpreter.IntpState) error {
-					if i.Env.Get("a") != (value.Number{Value: 1}) {
+					if !reflect.DeepEqual(i.Env.Get("a"), &value.Number{Value: 1}) {
 						return errors.New("Variable 'a' was not set to value 1")
 					}
 
-					if i.Env.Get("b") != (value.Number{Value: 1}) {
+					if !reflect.DeepEqual(i.Env.Get("b"), &value.Number{Value: 1}) {
 						return errors.New("Variable 'b' was not resolved to variable \"a\"'s value 1")
 					}
 
@@ -489,7 +489,7 @@ func TestEval(t *testing.T) {
 						return errors.New("Variable 'a' should be present in first layer of state")
 					}
 
-					if !reflect.DeepEqual(v, value.Bottom{}) {
+					if !reflect.DeepEqual(v, &value.Bottom{}) {
 						return errors.New("Referencing an undefined variable should give a bottom value")
 					}
 
@@ -500,8 +500,7 @@ func TestEval(t *testing.T) {
 				name: "functions should be called when their arguments list equal their arity",
 				text: "let a = fn (a, b) -> a + b; a(1, 2)",
 				validate: func(v interface{}, i interpreter.IntpState) error {
-
-					if !reflect.DeepEqual(v, value.Number{Value: 3}) {
+					if !reflect.DeepEqual(v, &value.Number{Value: 3}) {
 						return errors.New("Function was not properly called")
 					}
 
@@ -512,7 +511,7 @@ func TestEval(t *testing.T) {
 				name: "functions should be partially applied when their arguments list is less than their arity",
 				text: "let a = fn (a, b) -> a + b; a(1)",
 				validate: func(v interface{}, i interpreter.IntpState) error {
-					fn, ok := v.(value.Function)
+					fn, ok := v.(*value.Function)
 
 					if !ok {
 						return errors.New("Partially applied function did not return a function")
@@ -522,7 +521,7 @@ func TestEval(t *testing.T) {
 						return errors.New("Arity was not updated for a partially applied function")
 					}
 
-					if !reflect.DeepEqual(fn.Apps, []value.Value{value.Number{Value: 1}}) {
+					if !reflect.DeepEqual(fn.Apps, []value.Value{&value.Number{Value: 1}}) {
 						return errors.New("Function applied arguments we not evaluated properly")
 					}
 
@@ -533,7 +532,7 @@ func TestEval(t *testing.T) {
 				name: "partially applied functions are callable",
 				text: "let a = fn (a, b) -> a + b; let b = a(1); b(2)",
 				validate: func(v interface{}, i interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Number{Value: 3}) {
+					if !reflect.DeepEqual(v, &value.Number{Value: 3}) {
 						return errors.New("Partially applied arguments were not stored properly")
 					}
 
@@ -544,7 +543,7 @@ func TestEval(t *testing.T) {
 				name: "partially applied functions are not equal",
 				text: "let a = fn (a, b) -> a + b; let b = a(1); let c = a(1); b == c",
 				validate: func(v interface{}, i interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Boolean{Value: false}) {
+					if !reflect.DeepEqual(v, &value.Boolean{Value: false}) {
 						return errors.New("Partially applied functions with identical applications are not equal")
 					}
 
@@ -555,7 +554,7 @@ func TestEval(t *testing.T) {
 				name: "functions can be applied with more arguments than arity",
 				text: "let a = fn (a, b) -> a + b; a(1,2,3)",
 				validate: func(v interface{}, i interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Number{Value: 3}) {
+					if !reflect.DeepEqual(v, &value.Number{Value: 3}) {
 						return errors.New("Extra arguments should be discarded when functions are called")
 					}
 
@@ -566,11 +565,11 @@ func TestEval(t *testing.T) {
 				name: "function bodies create their own scope",
 				text: "let a, b; let c = fn(mut a) { a = 2; let c = 2; };",
 				validate: func(v interface{}, i interpreter.IntpState) error {
-					if !reflect.DeepEqual(i.Env.Get("a"), value.Bottom{}) {
+					if !reflect.DeepEqual(i.Env.Get("a"), &value.Bottom{}) {
 						return errors.New("Function parameters should be declared in an inner scope")
 					}
 
-					if !reflect.DeepEqual(i.Env.Get("b"), value.Bottom{}) {
+					if !reflect.DeepEqual(i.Env.Get("b"), &value.Bottom{}) {
 						return errors.New("Variables in function bodies should be declared in an inner scope")
 					}
 
@@ -581,7 +580,7 @@ func TestEval(t *testing.T) {
 				name: "iife 1",
 				text: "fn(a){ return a + 1; }(1)",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Number{Value: 2}) {
+					if !reflect.DeepEqual(v, &value.Number{Value: 2}) {
 						return errors.New("Function expression was not immediately invoked")
 					}
 
@@ -592,7 +591,7 @@ func TestEval(t *testing.T) {
 				name: "iife 2",
 				text: "(fn(a) -> a + 1)(1)",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
-					if !reflect.DeepEqual(v, value.Number{Value: 2}) {
+					if !reflect.DeepEqual(v, &value.Number{Value: 2}) {
 						return errors.New("Function expression was not immediately invoked")
 					}
 
@@ -603,7 +602,7 @@ func TestEval(t *testing.T) {
 				name: "assign statement 1",
 				text: "let mut a; a = 4;",
 				validate: func(_ interface{}, i interpreter.IntpState) error {
-					if i.Env.Get("a") != (value.Number{Value: 4}) {
+					if !reflect.DeepEqual(i.Env.Get("a"), &value.Number{Value: 4}) {
 						return errors.New("Variable \"a\" was not properly assigned the value 4")
 					}
 
@@ -629,7 +628,7 @@ func TestEval(t *testing.T) {
 				name: "if statement (no init) enters then block",
 				text: "let mut a; if true { a = 1; }",
 				validate: func(_ interface{}, i interpreter.IntpState) error {
-					if i.Env.Get("a") != (value.Number{Value: 1}) {
+					if !reflect.DeepEqual(i.Env.Get("a"), &value.Number{Value: 1}) {
 						return errors.New("The `then` block in the if statement was not entered for a true value")
 					}
 
@@ -640,7 +639,7 @@ func TestEval(t *testing.T) {
 				name: "if statement (no init) enters else block",
 				text: "let mut a; if false { a = 1; } else { a = 2; }",
 				validate: func(_ interface{}, i interpreter.IntpState) error {
-					if i.Env.Get("a") != (value.Number{Value: 2}) {
+					if !reflect.DeepEqual(i.Env.Get("a"), &value.Number{Value: 2}) {
 						return errors.New("The `else` block in the if statement was not entered for a false value")
 					}
 
@@ -651,7 +650,7 @@ func TestEval(t *testing.T) {
 				name: "if statement (no init) does nothing if false and no else block",
 				text: "let mut a; if false { a = 1; }",
 				validate: func(_ interface{}, i interpreter.IntpState) error {
-					if i.Env.Get("a") != (value.Bottom{}) {
+					if !reflect.DeepEqual(i.Env.Get("a"), &value.Bottom{}) {
 						return errors.New("Variable \"a\" should not have been reassigned")
 					}
 
@@ -662,7 +661,7 @@ func TestEval(t *testing.T) {
 				name: "if statement (no init) generates new scope for each block",
 				text: "let a = 1; if true { let a = 2; }",
 				validate: func(_ interface{}, i interpreter.IntpState) error {
-					if i.Env.Get("a") != (value.Number{Value: 1}) {
+					if !reflect.DeepEqual(i.Env.Get("a"), &value.Number{Value: 1}) {
 						return errors.New("Outer variable \"a\" should not have been reassigned")
 					}
 
@@ -673,7 +672,7 @@ func TestEval(t *testing.T) {
 				name: "if statement (with init) shadows outer variables",
 				text: "let a = 1; if let mut a = 2; true { a = 3; }",
 				validate: func(_ interface{}, i interpreter.IntpState) error {
-					if i.Env.Get("a") != (value.Number{Value: 1}) {
+					if !reflect.DeepEqual(i.Env.Get("a"), &value.Number{Value: 1}) {
 						return errors.New("Outer variable \"a\" should have been shadowed")
 					}
 
@@ -684,7 +683,7 @@ func TestEval(t *testing.T) {
 				name: "else statement can reference initialized if variables",
 				text: "let mut b; if let a = 2; false {} else { b = a; }",
 				validate: func(_ interface{}, i interpreter.IntpState) error {
-					if i.Env.Get("b") != (value.Number{Value: 2}) {
+					if !reflect.DeepEqual(i.Env.Get("b"), &value.Number{Value: 2}) {
 						return errors.New("Else branches should be able to access variables declared in `if` blocks")
 					}
 
@@ -695,7 +694,7 @@ func TestEval(t *testing.T) {
 				name: "nested if statements should be able to access outer if statements variables",
 				text: "let mut b; if let a = 2; false {} else if true { b = a; }",
 				validate: func(_ interface{}, i interpreter.IntpState) error {
-					if i.Env.Get("b") != (value.Number{Value: 2}) {
+					if !reflect.DeepEqual(i.Env.Get("b"), &value.Number{Value: 2}) {
 						return errors.New("Nested if statements should be able to access outer if statements' variables")
 					}
 
@@ -706,7 +705,7 @@ func TestEval(t *testing.T) {
 				name: "nested if statements should be able to shadow outer if statements variables",
 				text: "let mut b; if let a = 2; false {} else if let a = 3; true { b = a; }",
 				validate: func(_ interface{}, i interpreter.IntpState) error {
-					if i.Env.Get("b") != (value.Number{Value: 3}) {
+					if !reflect.DeepEqual(i.Env.Get("b"), &value.Number{Value: 3}) {
 						return errors.New("Nested if statements should be able to shadow outer if statements' variables")
 					}
 
