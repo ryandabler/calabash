@@ -152,7 +152,6 @@ func TestEval(t *testing.T) {
 							},
 						},
 					}) {
-						fmt.Printf("%#v", vfunc.Body)
 						return errors.New("Function bodies are not equal")
 					}
 
