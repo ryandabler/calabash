@@ -177,6 +177,22 @@ func (a *analyzer) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 	return nil, nil
 }
 
+func (a *analyzer) VisitGetExpr(e ast.GetExpr) (interface{}, error) {
+	err := a.analyzeNode(e.Gettee)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.analyzeNode(e.Field)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
 func (a *analyzer) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {
 	if len(s.Names) != len(s.Values) && len(s.Values) > 0 {
 		return nil, errors.StaticError{Msg: "If any variable is initialized, they all must be."}

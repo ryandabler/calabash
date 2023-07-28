@@ -247,6 +247,14 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 		return true
 	}
 
+	tA17, okA := a.(ast.GetExpr)
+	tB17, okB := b.(ast.GetExpr)
+
+	if okA && okB {
+		return nodesAreEqual(tA17.Gettee, tB17.Gettee) &&
+			nodesAreEqual(tA17.Field, tB17.Field)
+	}
+
 	return false
 }
 
@@ -493,6 +501,51 @@ func TestParse(t *testing.T) {
 								Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
 							},
 						},
+					},
+				},
+			},
+			{
+				name: "get expression 1",
+				text: "abc->def",
+				expected: []ast.Node{
+					ast.GetExpr{
+						Gettee: ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "abc", 0, 0)},
+						Field:  ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "def", 0, 0)},
+					},
+				},
+			},
+			{
+				name: "get expression 2",
+				text: "[]->'abc'->3->true",
+				expected: []ast.Node{
+					ast.GetExpr{
+						Gettee: ast.GetExpr{
+							Gettee: ast.GetExpr{
+								Gettee: ast.TupleLiteralExpr{},
+								Field:  ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "'abc'", 0, 0)},
+							},
+							Field: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "3", 0, 0)},
+						},
+						Field: ast.BooleanLiteralExpr{Value: tokens.New(tokentype.TRUE, "true", 0, 0)},
+					},
+				},
+			},
+			{
+				name: "get expression 3",
+				text: "[]->'abc'()->'def'()",
+				expected: []ast.Node{
+					ast.CallExpr{
+						Callee: ast.GetExpr{
+							Gettee: ast.CallExpr{
+								Callee: ast.GetExpr{
+									Gettee: ast.TupleLiteralExpr{Contents: nil},
+									Field:  ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "'abc'", 0, 0)},
+								},
+								Arguments: []ast.Expr{},
+							},
+							Field: ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "'def'", 0, 0)},
+						},
+						Arguments: []ast.Expr{},
 					},
 				},
 			},
@@ -1068,6 +1121,7 @@ func TestParse(t *testing.T) {
 			{name: "malformed function expression 3", text: "fn (a) -> 1 +"},
 			{name: "malformed function expression 3", text: "fn (a) { 1 + }"},
 			{name: "malformed call expression", text: "a(if)"},
+			{name: "malformed get expression", text: "1->if true {}"},
 			{name: "malformed variable declaration 1", text: "let 'ab';"},
 			{name: "malformed variable declaration 2", text: "let ab"},
 			{name: "malformed variable declaration 3", text: "let a = 4 +"},

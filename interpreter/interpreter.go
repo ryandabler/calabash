@@ -370,6 +370,52 @@ func (i *interpreter) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 	return &value.Proto{Keys: ks, Methods: vs}, nil
 }
 
+func (i *interpreter) VisitGetExpr(e ast.GetExpr) (interface{}, error) {
+	gettee, err := i.evalNode(e.Gettee)
+
+	if err != nil {
+		return nil, err
+	}
+
+	v, ok := gettee.(value.Value)
+
+	if !ok {
+		return nil, errors.RuntimeError{Msg: "Gettee was not a value"}
+	}
+
+	p := v.Proto()
+
+	if p == nil {
+		return nil, errors.RuntimeError{Msg: "Value received does not have a proto"}
+	}
+
+	f, err := i.evalNode(e.Field)
+
+	if err != nil {
+		return nil, err
+	}
+
+	fval, ok := f.(value.Value)
+
+	if !ok {
+		return nil, errors.RuntimeError{Msg: "Field was not a value"}
+	}
+
+	m, ok := p.Methods[fval.Hash()]
+
+	if !ok {
+		return nil, errors.RuntimeError{Msg: fmt.Sprintf("Field %q did not exist in prototype", fval.Hash())}
+	}
+
+	pm, ok := m.(*value.ProtoMethod)
+
+	if !ok {
+		return nil, errors.RuntimeError{Msg: fmt.Sprintf("Field %q did not resolve to a proto method", fval.Hash())}
+	}
+
+	return pm.Bind(v), nil
+}
+
 func (i *interpreter) VisitVarDeclStmt(s ast.VarDeclStmt) (interface{}, error) {
 	for idx, n := range s.Names {
 		var val value.Value = &value.Bottom{}

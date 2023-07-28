@@ -90,6 +90,10 @@ func TestAnalyze(t *testing.T) {
 				text: "fn () {}()",
 			},
 			{
+				name: "get expression 1",
+				text: "1->'b'",
+			},
+			{
 				name: "assignment statement",
 				text: "let mut a; a = 1;",
 			},
@@ -196,6 +200,14 @@ func TestAnalyze(t *testing.T) {
 			{
 				name: "proto with undeclared identifier in method",
 				text: "proto { 'a' -> fn() -> a }",
+			},
+			{
+				name: "get expression with unresolved gettee variable",
+				text: "a -> 1",
+			},
+			{
+				name: "get expression with unresolved field variable",
+				text: "'a' -> a",
 			},
 			{
 				name: "var declaration with undeclared identifier expression",

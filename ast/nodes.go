@@ -176,6 +176,19 @@ func (e ProtoExpr) n() nodetype {
 	return nt
 }
 
+type GetExpr struct {
+	Gettee Expr
+	Field  Expr
+}
+
+func (e GetExpr) e() nodetype {
+	return nt
+}
+
+func (e GetExpr) n() nodetype {
+	return nt
+}
+
 type VarDeclStmt struct {
 	Names  []Identifier
 	Values []Expr

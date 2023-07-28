@@ -505,10 +505,10 @@ func (p *parser) unary() (ast.Expr, error) {
 		return ast.UnaryExpr{Operator: op, Expr: expr}, nil
 	}
 
-	return p.call()
+	return p.callOrGet()
 }
 
-func (p *parser) call() (ast.Expr, error) {
+func (p *parser) callOrGet() (ast.Expr, error) {
 	maybeIdent, err := p.fundamental()
 
 	if err != nil {
@@ -518,37 +518,81 @@ func (p *parser) call() (ast.Expr, error) {
 	// If the next token is not an open parenthesis we do not
 	// have a call expression so return whatever we got from
 	// `p.fundamental()`
-	if p.current().Type != tokentype.LEFT_PAREN {
+	if !p.is(tokentype.LEFT_PAREN, tokentype.MINUS_GREAT) {
 		return maybeIdent, nil
 	}
 
-	callee := ast.CallExpr{Callee: maybeIdent}
+	expr := maybeIdent
 
 	// To allow chained call expression like `someFn()()`
 	// we loop through so long as we have a left paren to
 	// consume and nest the functions together.
-	for p.isThenEat(tokentype.LEFT_PAREN) {
-		args := []ast.Expr{}
+	for {
+		if p.isThenEat(tokentype.LEFT_PAREN) {
+			args := []ast.Expr{}
 
-		for !p.isThenEat(tokentype.RIGHT_PAREN) {
-			arg, err := p.expression()
+			for !p.isThenEat(tokentype.RIGHT_PAREN) {
+				arg, err := p.expression()
+
+				if err != nil {
+					return nil, err
+				}
+
+				args = append(args, arg)
+
+				// In case there are multiple arguments, consume the next comma
+				p.isThenEat(tokentype.COMMA)
+			}
+
+			expr = ast.CallExpr{Callee: expr, Arguments: args}
+
+			continue
+		}
+
+		if p.isThenEat(tokentype.MINUS_GREAT) {
+			field, err := p.fundamental()
 
 			if err != nil {
 				return nil, err
 			}
 
-			args = append(args, arg)
+			expr = ast.GetExpr{Gettee: expr, Field: field}
 
-			// In case there are multiple arguments, consume the next comma
-			p.isThenEat(tokentype.COMMA)
+			continue
 		}
 
-		callee.Arguments = args
-		callee = ast.CallExpr{Callee: callee}
+		break
 	}
 
-	return callee.Callee, nil
+	return expr, nil
 }
+
+// func (p *parser) get() (ast.Expr, error) {
+// 	maybeIdent, err := p.fundamental()
+
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	if !p.is(tokentype.MINUS_GREAT) {
+// 		return maybeIdent, nil
+// 	}
+
+// 	gettee := ast.GetExpr{Gettee: maybeIdent}
+
+// 	for p.isThenEat(tokentype.MINUS_GREAT) {
+// 		field, err := p.fundamental()
+
+// 		if err != nil {
+// 			return nil, err
+// 		}
+
+// 		gettee.Field = field
+// 		gettee = ast.GetExpr{Gettee: gettee}
+// 	}
+
+// 	return gettee.Gettee, nil
+// }
 
 func (p *parser) function() (ast.Expr, error) {
 	// Get formal parameter list
