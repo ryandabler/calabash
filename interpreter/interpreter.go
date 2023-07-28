@@ -253,8 +253,8 @@ func (i *interpreter) VisitIdentifierExpr(e ast.IdentifierExpr) (interface{}, er
 
 func (i *interpreter) VisitFuncExpr(e ast.FuncExpr) (interface{}, error) {
 	fn := &value.Function{
-		Body:   e.Body,
-		Params: e.Params,
+		Body:      e.Body,
+		ParamList: e.Params,
 	}
 
 	return fn, nil
@@ -269,7 +269,7 @@ func (i *interpreter) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 		return nil, err
 	}
 
-	vfunc, ok := callee.(*value.Function)
+	vfunc, ok := callee.(value.Caller)
 
 	if !ok {
 		return nil, errors.RuntimeError{Msg: "Attempting to call a non-functional value."}
@@ -302,9 +302,9 @@ func (i *interpreter) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 
 	// Begin function call routines
 	fBodyEnv := environment.New[value.Value](nil)
-	args := append(vfunc.Apps, vals...)
+	args := append(vfunc.Args(), vals...)
 
-	for idx, ident := range vfunc.Params {
+	for idx, ident := range vfunc.Params() {
 		fBodyEnv.Add(ident.Name.Lexeme, args[idx])
 	}
 
@@ -334,7 +334,7 @@ func (i *interpreter) VisitMeExpr(e ast.MeExpr) (interface{}, error) {
 
 func (i *interpreter) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 	ks := make([]string, len(e.MethodSet))
-	vs := map[string]*value.Function{}
+	vs := map[string]value.Caller{}
 
 	for idx, m := range e.MethodSet {
 		k, err := i.evalNode(m.K)
@@ -355,7 +355,7 @@ func (i *interpreter) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 			return nil, err
 		}
 
-		vv, ok := v.(*value.Function)
+		vv, ok := v.(value.Caller)
 
 		if !ok {
 			return nil, errors.RuntimeError{Msg: "Proto function could not be converted to a function"}

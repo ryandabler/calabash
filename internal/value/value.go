@@ -66,11 +66,20 @@ func (v *Boolean) Hash() string {
 	return fmt.Sprintf("b:%t", v.Value)
 }
 
+type Caller interface {
+	Apply([]Value) Caller
+	Args() []Value
+	Params() []ast.Identifier
+	Arity() int
+	Call(Evaluator) (interface{}, error)
+	Hash() string
+}
+
 type Function struct {
-	Params []ast.Identifier
-	Body   ast.Block
-	Apps   []Value
-	hash   string
+	ParamList []ast.Identifier
+	Body      ast.Block
+	Apps      []Value
+	hash      string
 }
 
 func (v *Function) v() vtype {
@@ -88,16 +97,24 @@ func (v *Function) Hash() string {
 	return v.hash
 }
 
-func (v *Function) Apply(vs []Value) *Function {
+func (v *Function) Apply(vs []Value) Caller {
 	return &Function{
-		Params: v.Params,
-		Body:   v.Body,
-		Apps:   append(v.Apps, vs...),
+		ParamList: v.ParamList,
+		Body:      v.Body,
+		Apps:      append(v.Apps, vs...),
 	}
 }
 
+func (v *Function) Args() []Value {
+	return v.Apps
+}
+
+func (v *Function) Params() []ast.Identifier {
+	return v.ParamList
+}
+
 func (v *Function) Arity() int {
-	return len(v.Params) - len(v.Apps)
+	return len(v.ParamList) - len(v.Apps)
 }
 
 func (v *Function) Call(e Evaluator) (interface{}, error) {
@@ -134,7 +151,7 @@ func (v *Tuple) Hash() string {
 }
 
 type Proto struct {
-	Methods map[string]*Function
+	Methods map[string]Caller
 	Keys    []string
 	hash    string
 }

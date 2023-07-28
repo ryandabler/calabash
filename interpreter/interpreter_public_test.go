@@ -109,7 +109,7 @@ func TestEval(t *testing.T) {
 						return errors.New("Did not receive a function value")
 					}
 
-					if !reflect.DeepEqual(vfunc.Params, []ast.Identifier{{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 4)}}) {
+					if !reflect.DeepEqual(vfunc.ParamList, []ast.Identifier{{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 4)}}) {
 						return errors.New("Param list is not equal")
 					}
 
@@ -134,7 +134,7 @@ func TestEval(t *testing.T) {
 						return errors.New("Did not receive a function value")
 					}
 
-					if !reflect.DeepEqual(vfunc.Params, []ast.Identifier{
+					if !reflect.DeepEqual(vfunc.ParamList, []ast.Identifier{
 						{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 4)},
 						{Name: tokens.New(tokentype.IDENTIFIER, "b", 0, 7)},
 					}) {
