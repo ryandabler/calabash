@@ -497,7 +497,7 @@ func New() *interpreter {
 	}
 }
 
-type IntpState struct {
+type IntpState = struct {
 	Env *environment.Environment[value.Value]
 }
 

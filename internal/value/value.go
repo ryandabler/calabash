@@ -9,6 +9,9 @@ import (
 
 type Evaluator interface {
 	Eval([]ast.Node) (interface{}, error)
+	Dump() struct {
+		Env *environment.Environment[Value]
+	}
 }
 
 type vtype int
