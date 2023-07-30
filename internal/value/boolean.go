@@ -4,6 +4,7 @@ import "fmt"
 
 type Boolean struct {
 	Value bool
+	proto *Proto
 }
 
 func (v *Boolean) v() vtype {
@@ -12,6 +13,21 @@ func (v *Boolean) v() vtype {
 
 func (v *Boolean) Hash() string {
 	return fmt.Sprintf("b:%t", v.Value)
+}
+
+func (v *Boolean) Proto() *Proto {
+	return v.proto
+}
+
+func NewBoolean(v bool) *Boolean {
+	return &Boolean{
+		Value: v,
+		proto: ProtoBoolean,
+	}
+}
+
+var ProtoBoolean = &Proto{
+	Methods: map[string]Caller{},
 }
 
 // Compile time checks

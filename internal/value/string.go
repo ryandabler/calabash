@@ -4,6 +4,7 @@ import "fmt"
 
 type String struct {
 	Value string
+	proto *Proto
 }
 
 func (v *String) v() vtype {
@@ -12,6 +13,21 @@ func (v *String) v() vtype {
 
 func (v *String) Hash() string {
 	return fmt.Sprintf("s:%q", v.Value)
+}
+
+func (v *String) Proto() *Proto {
+	return v.proto
+}
+
+func NewString(v string) *String {
+	return &String{
+		Value: v,
+		proto: ProtoString,
+	}
+}
+
+var ProtoString = &Proto{
+	Methods: map[string]Caller{},
 }
 
 // Compile time checks

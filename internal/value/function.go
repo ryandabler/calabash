@@ -27,6 +27,10 @@ func (v *Function) Hash() string {
 	return v.hash
 }
 
+func (v *Function) Proto() *Proto {
+	return nil
+}
+
 func (v *Function) Apply(vs []Value) Caller {
 	return &Function{
 		ParamList: v.ParamList,

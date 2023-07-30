@@ -19,6 +19,7 @@ type Evaluator interface {
 type Value interface {
 	v() vtype
 	Hash() string
+	Proto() *Proto
 }
 
 type Caller interface {

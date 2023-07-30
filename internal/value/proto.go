@@ -22,5 +22,9 @@ func (v *Proto) Hash() string {
 	return v.hash
 }
 
+func (v *Proto) Proto() *Proto {
+	return nil
+}
+
 // Compile time checks
 var _ Value = (*Proto)(nil)

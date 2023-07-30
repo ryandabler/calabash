@@ -70,20 +70,24 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 			b = !b
 		}
 
-		return &value.Boolean{Value: b}, nil
+		return value.NewBoolean(b), nil
 	}
 
 	if isBooleanOp(op) && areBools(l, r) {
 		lb, _ := l.(*value.Boolean)
 		rb, _ := r.(*value.Boolean)
 
+		var bv *value.Boolean
+
 		if op == tokentype.AMPERSAND_AMPERSAND {
-			return &value.Boolean{Value: lb.Value && rb.Value}, nil
+			bv = value.NewBoolean(lb.Value && rb.Value)
 		}
 
 		if op == tokentype.STROKE_STROKE {
-			return &value.Boolean{Value: lb.Value || rb.Value}, nil
+			bv = value.NewBoolean(lb.Value || rb.Value)
 		}
+
+		return bv, nil
 	}
 
 	if isBooleanOp(op) {
@@ -97,22 +101,14 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 		rn, okr := r.(*value.Number)
 
 		if okl && okr {
-			val := &value.Number{
-				Value: ln.Value + rn.Value,
-			}
-
-			return val, nil
+			return value.NewNumber(ln.Value + rn.Value), nil
 		}
 
 		ls, okl := l.(*value.String)
 		rs, okr := r.(*value.String)
 
 		if okl && okr {
-			val := &value.String{
-				Value: ls.Value + rs.Value,
-			}
-
-			return val, nil
+			return value.NewString(ls.Value + rs.Value), nil
 		}
 
 		return nil, errors.RuntimeError{Msg: "The types for binary '+' are not the same"}
@@ -125,36 +121,28 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 
 		switch op {
 		case tokentype.MINUS:
-			val = &value.Number{
-				Value: ln.Value - rn.Value,
-			}
+			val = value.NewNumber(ln.Value - rn.Value)
 
 		case tokentype.ASTERISK:
-			val = &value.Number{
-				Value: ln.Value * rn.Value,
-			}
+			val = value.NewNumber(ln.Value * rn.Value)
 
 		case tokentype.SLASH:
-			val = &value.Number{
-				Value: ln.Value / rn.Value,
-			}
+			val = value.NewNumber(ln.Value / rn.Value)
 
 		case tokentype.ASTERISK_ASTERISK:
-			val = &value.Number{
-				Value: math.Pow(ln.Value, rn.Value),
-			}
+			val = value.NewNumber(math.Pow(ln.Value, rn.Value))
 
 		case tokentype.GREAT:
-			val = &value.Boolean{Value: ln.Value > rn.Value}
+			val = value.NewBoolean(ln.Value > rn.Value)
 
 		case tokentype.GREAT_EQUAL:
-			val = &value.Boolean{Value: ln.Value >= rn.Value}
+			val = value.NewBoolean(ln.Value >= rn.Value)
 
 		case tokentype.LESS:
-			val = &value.Boolean{Value: ln.Value < rn.Value}
+			val = value.NewBoolean(ln.Value < rn.Value)
 
 		case tokentype.LESS_EQUAL:
-			val = &value.Boolean{Value: ln.Value <= rn.Value}
+			val = value.NewBoolean(ln.Value <= rn.Value)
 		}
 
 		return val, nil
@@ -174,17 +162,14 @@ func (i *interpreter) VisitNumLitExpr(e ast.NumericLiteralExpr) (interface{}, er
 		return nil, err
 	}
 
-	v := &value.Number{
-		Value: n,
-	}
-
-	return v, nil
+	return value.NewNumber(n), nil
 }
 
 func (i *interpreter) VisitStrLitExpr(e ast.StringLiteralExpr) (interface{}, error) {
 	rs := []rune(e.Value.Lexeme)
 	l := len(rs)
-	str := &value.String{Value: string(rs[1 : l-1])}
+
+	str := value.NewString(string(rs[1 : l-1]))
 
 	return str, nil
 }
@@ -222,7 +207,7 @@ func (i *interpreter) VisitBottomLitExpr(e ast.BottomLiteralExpr) (interface{}, 
 }
 
 func (i *interpreter) VisitBooleanLitExpr(e ast.BooleanLiteralExpr) (interface{}, error) {
-	return &value.Boolean{Value: e.Value.Type == tokentype.TRUE}, nil
+	return value.NewBoolean(e.Value.Type == tokentype.TRUE), nil
 }
 
 func (i *interpreter) VisitTupleLitExpr(e ast.TupleLiteralExpr) (interface{}, error) {
@@ -244,7 +229,7 @@ func (i *interpreter) VisitTupleLitExpr(e ast.TupleLiteralExpr) (interface{}, er
 		vs[idx] = v
 	}
 
-	return &value.Tuple{Items: vs}, nil
+	return value.NewTuple(vs), nil
 }
 
 func (i *interpreter) VisitIdentifierExpr(e ast.IdentifierExpr) (interface{}, error) {
