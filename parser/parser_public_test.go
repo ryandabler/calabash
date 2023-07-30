@@ -489,6 +489,19 @@ func TestParse(t *testing.T) {
 			},
 			{
 				name: "call expression 4",
+				text: "abc()()",
+				expected: []ast.Node{
+					ast.CallExpr{
+						Callee: ast.CallExpr{
+							Callee:    ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "abc", 0, 0)},
+							Arguments: []ast.Expr{},
+						},
+						Arguments: []ast.Expr{},
+					},
+				},
+			},
+			{
+				name: "call expression 5",
 				text: "a(true, 1 + 2)",
 				expected: []ast.Node{
 					ast.CallExpr{
