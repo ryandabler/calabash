@@ -28,6 +28,9 @@ type svisitor[T any] interface {
 	VisitIfStmt(s ast.IfStmt) (T, error)
 	VisitBlock(s ast.Block) (T, error)
 	VisitRetStmt(s ast.ReturnStmt) (T, error)
+	VisitWhileStmt(s ast.WhileStmt) (T, error)
+	VisitContStmt(s ast.ContinueStmt) (T, error)
+	VisitBrkStmt(s ast.BreakStmt) (T, error)
 }
 
 type visitor[T any] interface {
@@ -151,6 +154,21 @@ func Accept[T any](n ast.Node, v visitor[T]) (T, error) {
 		s := n.(ast.ReturnStmt)
 
 		return v.VisitRetStmt(s)
+
+	case ast.WhileStmt:
+		s := n.(ast.WhileStmt)
+
+		return v.VisitWhileStmt(s)
+
+	case ast.ContinueStmt:
+		s := n.(ast.ContinueStmt)
+
+		return v.VisitContStmt(s)
+
+	case ast.BreakStmt:
+		s := n.(ast.BreakStmt)
+
+		return v.VisitBrkStmt(s)
 	}
 
 	return empty, errors.New("Supplied node did not match any node type")

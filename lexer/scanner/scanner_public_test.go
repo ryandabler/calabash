@@ -117,6 +117,9 @@ func TestRead(t *testing.T) {
 		{name: "mut", text: "mut", expected: []tokens.Token{tokens.New(tokentype.MUT, "mut", 0, 0)}},
 		{name: "me", text: "me", expected: []tokens.Token{tokens.New(tokentype.ME, "me", 0, 0)}},
 		{name: "proto", text: "proto", expected: []tokens.Token{tokens.New(tokentype.PROTO, "proto", 0, 0)}},
+		{name: "while", text: "while", expected: []tokens.Token{tokens.New(tokentype.WHILE, "while", 0, 0)}},
+		{name: "break", text: "break", expected: []tokens.Token{tokens.New(tokentype.BREAK, "break", 0, 0)}},
+		{name: "continue", text: "continue", expected: []tokens.Token{tokens.New(tokentype.CONTINUE, "continue", 0, 0)}},
 	}
 
 	for _, e := range table {

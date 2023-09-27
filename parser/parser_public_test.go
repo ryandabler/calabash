@@ -255,6 +255,29 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 			nodesAreEqual(tA17.Field, tB17.Field)
 	}
 
+	tA18, okA := a.(ast.WhileStmt)
+	tB18, okB := b.(ast.WhileStmt)
+
+	if okA && okB {
+		return nodesAreEqual(tA18.Decls, tB18.Decls) &&
+			nodesAreEqual(tA18.Condition, tB18.Condition) &&
+			nodesAreEqual(tA18.Block, tB18.Block)
+	}
+
+	_, okA = a.(ast.BreakStmt)
+	_, okB = b.(ast.BreakStmt)
+
+	if okA && okB {
+		return true
+	}
+
+	_, okA = a.(ast.ContinueStmt)
+	_, okB = b.(ast.ContinueStmt)
+
+	if okA && okB {
+		return true
+	}
+
 	return false
 }
 
@@ -908,6 +931,47 @@ func TestParse(t *testing.T) {
 					ast.ReturnStmt{Expr: ast.BooleanLiteralExpr{Value: tokens.New(tokentype.FALSE, "false", 0, 0)}},
 				},
 			},
+			{
+				name: "while with no initializer",
+				text: "while true {}",
+				expected: []ast.Node{
+					ast.WhileStmt{
+						Decls:     ast.VarDeclStmt{},
+						Condition: ast.BooleanLiteralExpr{Value: tokens.New(tokentype.TRUE, "true", 0, 0)},
+						Block:     ast.Block{},
+					},
+				},
+			},
+			{
+				name: "while with initializer",
+				text: "while let a = 1; true {}",
+				expected: []ast.Node{
+					ast.WhileStmt{
+						Decls: ast.VarDeclStmt{
+							Names: []ast.Identifier{
+								{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0), Mut: false},
+							},
+							Values: []ast.Expr{ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)}},
+						},
+						Condition: ast.BooleanLiteralExpr{Value: tokens.New(tokentype.TRUE, "true", 0, 0)},
+						Block:     ast.Block{},
+					},
+				},
+			},
+			{
+				name: "break",
+				text: "break;",
+				expected: []ast.Node{
+					ast.BreakStmt{},
+				},
+			},
+			{
+				name: "continue",
+				text: "continue;",
+				expected: []ast.Node{
+					ast.ContinueStmt{},
+				},
+			},
 		}
 
 		for _, e := range table {
@@ -1165,6 +1229,8 @@ func TestParse(t *testing.T) {
 			{name: "malformed proto expression 5", text: "proto { 'a' -> fn () -> 1, 'b' -> 3 }"},
 			{name: "malformed proto expression 6", text: "proto { 'a' fn () -> 1 }"},
 			{name: "malformed proto expression 7", text: "proto { 'a' -> fn -> 1 }"},
+			{name: "malformed break", text: "break"},
+			{name: "malformed continue", text: "continue"},
 		}
 
 		for _, e := range table {

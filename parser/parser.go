@@ -118,6 +118,36 @@ func (p *parser) stmtOrExpr() (ast.Node, error) {
 		return n, nil
 	}
 
+	if p.isThenEat(tokentype.WHILE) {
+		n, err := p.whileStmt()
+
+		if err != nil {
+			return nil, err
+		}
+
+		return n, nil
+	}
+
+	if p.isThenEat(tokentype.CONTINUE) {
+		n, err := p.contStmt()
+
+		if err != nil {
+			return nil, err
+		}
+
+		return n, nil
+	}
+
+	if p.isThenEat(tokentype.BREAK) {
+		n, err := p.brkStmt()
+
+		if err != nil {
+			return nil, err
+		}
+
+		return n, nil
+	}
+
 	expr, err := p.expression()
 
 	if err != nil {
@@ -312,6 +342,56 @@ func (p *parser) retStmt() (ast.Node, error) {
 	}
 
 	return ast.ReturnStmt{Expr: expr}, nil
+}
+
+func (p *parser) whileStmt() (ast.Node, error) {
+	var varDecl ast.Node
+	var err error
+	var decls ast.VarDeclStmt
+
+	if p.isThenEat(tokentype.LET) {
+		varDecl, err = p.variableDecl()
+
+		if err != nil {
+			return nil, err
+		}
+
+		decls, _ = varDecl.(ast.VarDeclStmt)
+	}
+
+	expr, err := p.expression()
+
+	if err != nil {
+		return nil, err
+	}
+
+	block, err := p.blockStmt()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.WhileStmt{Decls: decls, Condition: expr, Block: block}, nil
+}
+
+func (p *parser) contStmt() (ast.Node, error) {
+	_, err := p.eat(tokentype.SEMICOLON)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.ContinueStmt{}, nil
+}
+
+func (p *parser) brkStmt() (ast.Node, error) {
+	_, err := p.eat(tokentype.SEMICOLON)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.BreakStmt{}, nil
 }
 
 func (p *parser) expression() (ast.Expr, error) {

@@ -121,6 +121,26 @@ func TestAnalyze(t *testing.T) {
 				name: "if statement with shadowing else...if block",
 				text: "if let a; a == 4 {} else if let a; a == 3 {}",
 			},
+			{
+				name: "while statement with no variable declaration",
+				text: "while true {}",
+			},
+			{
+				name: "while statement with variable declaration",
+				text: "while let a = 1; a == 1 {}",
+			},
+			{
+				name: "while statement with shadowing variable declaration",
+				text: "let a = 1; while let a = 1; true {}",
+			},
+			{
+				name: "while statement with variable lookup",
+				text: "let a = 1; while a == 1 {}",
+			},
+			{
+				name: "while statement with variable lookup in block",
+				text: "let a = 1; while a == 1 { a }",
+			},
 		}
 
 		for _, e := range table {
@@ -248,6 +268,14 @@ func TestAnalyze(t *testing.T) {
 			{
 				name: "tuple expression containing undeclared variables",
 				text: "[1, a]",
+			},
+			{
+				name: "while statement with unresolved condition variable",
+				text: "while a == 1 {}",
+			},
+			{
+				name: "while statement with unresolved block variable",
+				text: "while true { a }",
 			},
 		}
 

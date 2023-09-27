@@ -51,5 +51,8 @@ const (
 	MUT
 	ME
 	PROTO
+	WHILE
+	CONTINUE
+	BREAK
 	EOF
 )

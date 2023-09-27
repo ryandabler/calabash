@@ -242,3 +242,25 @@ type ReturnStmt struct {
 func (s ReturnStmt) n() nodetype {
 	return nt
 }
+
+type WhileStmt struct {
+	Decls     VarDeclStmt
+	Condition Expr
+	Block     Node
+}
+
+func (s WhileStmt) n() nodetype {
+	return nt
+}
+
+type ContinueStmt struct{}
+
+func (s ContinueStmt) n() nodetype {
+	return nt
+}
+
+type BreakStmt struct{}
+
+func (s BreakStmt) n() nodetype {
+	return nt
+}

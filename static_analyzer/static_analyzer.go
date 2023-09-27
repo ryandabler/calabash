@@ -306,6 +306,42 @@ func (a *analyzer) VisitRetStmt(s ast.ReturnStmt) (interface{}, error) {
 	return visitor.Accept[interface{}](s.Expr, a)
 }
 
+func (a *analyzer) VisitWhileStmt(s ast.WhileStmt) (interface{}, error) {
+	a.newScope()
+	defer a.endScope()
+
+	// Analyze any declarations
+	if len(s.Decls.Names) > 0 {
+		_, err := a.VisitVarDeclStmt(s.Decls)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err := a.analyzeNode(s.Condition)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.analyzeNode(s.Block)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (a *analyzer) VisitContStmt(s ast.ContinueStmt) (interface{}, error) {
+	return nil, nil
+}
+
+func (a *analyzer) VisitBrkStmt(s ast.BreakStmt) (interface{}, error) {
+	return nil, nil
+}
+
 func New() *analyzer {
 	return &analyzer{
 		env: environment.New[identRecord](nil),

@@ -16,6 +16,9 @@ STATEMENT
     | ASSIGNMENT
     | IF
     | RETURN
+    | WHILE
+    | 'continue' ';'
+    | 'break' ';'
     ;
 
 VARIABLE_DECLARATION
@@ -33,6 +36,10 @@ MULTI_IDENT
 
 IF
     : 'if' VARIABLE_DECLARATION? EXPRESSION BLOCK_STATEMENT ['else' (IF | BLOCK_STATEMENT)]?
+    ;
+
+WHILE
+    : 'while' VARIABLE_DECLARATION? EXPRESSION BLOCK_STATEMENT
     ;
 
 RETURN

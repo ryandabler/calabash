@@ -924,6 +924,50 @@ func TestEval(t *testing.T) {
 					return nil
 				},
 			},
+			{
+				name: "while statements create their own scope",
+				text: "let a = 1; while let mut a = 10; a < 11 { a = a + 1; }",
+				validate: func(_ interface{}, i interpreter.IntpState) error {
+					if !reflect.DeepEqual(i.Env.Get("a"), value.NewNumber(1)) {
+						return errors.New("Variables initialized in while loop should shadow outer scope")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "while loops do not execute block when condition is false",
+				text: "let mut a = 1; while false { a = a + 1; }",
+				validate: func(_ interface{}, i interpreter.IntpState) error {
+					if !reflect.DeepEqual(i.Env.Get("a"), value.NewNumber(1)) {
+						return errors.New("While loop body should not have been entered")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "while loops can be broken out of",
+				text: "let mut a = 1; while true { if a == 1 { break; } a = a + 1; }",
+				validate: func(_ interface{}, i interpreter.IntpState) error {
+					if !reflect.DeepEqual(i.Env.Get("a"), value.NewNumber(1)) {
+						return errors.New("While loop body was not properly broken out of")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "while loops can be continued",
+				text: "let mut a, mut b = 1, 10; while a <= 3 { a = a + 1;  if a == 2 { continue; } b = b + 1; }",
+				validate: func(_ interface{}, i interpreter.IntpState) error {
+					if !reflect.DeepEqual(i.Env.Get("b"), value.NewNumber(12)) {
+						return errors.New("While loop body was not properly continued")
+					}
+
+					return nil
+				},
+			},
 		}
 
 		for _, e := range table {
@@ -1075,6 +1119,14 @@ func TestEval(t *testing.T) {
 			{
 				name: "protoMethod value has no proto",
 				text: "let a = [] -> 'push'; a -> 'a'",
+			},
+			{
+				name: "while loop with non-boolean condition expression 1",
+				text: "while 1 { 1 + 1 }",
+			},
+			{
+				name: "while loop with non-boolean condition expression 2",
+				text: "while 'true' { 1 + 1 }",
 			},
 		}
 

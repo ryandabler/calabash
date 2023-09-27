@@ -37,3 +37,15 @@ type ReturnError struct{}
 func (e ReturnError) Error() string {
 	return ""
 }
+
+type BreakError struct{}
+
+func (e BreakError) Error() string {
+	return ""
+}
+
+type ContinueError struct{}
+
+func (e ContinueError) Error() string {
+	return ""
+}

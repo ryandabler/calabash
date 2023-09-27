@@ -522,6 +522,56 @@ func (i *interpreter) VisitRetStmt(s ast.ReturnStmt) (interface{}, error) {
 	return v, errors.ReturnError{}
 }
 
+func (i *interpreter) VisitWhileStmt(s ast.WhileStmt) (interface{}, error) {
+	e := environment.New(i.env)
+	i.env = e
+
+	defer func() { i.env = i.env.Parent }()
+
+	_, err := i.VisitVarDeclStmt(s.Decls)
+
+	if err != nil {
+		return nil, err
+	}
+
+	cond, err := i.evalNode(s.Condition)
+
+	if err != nil {
+		return nil, err
+	}
+
+	boolCond, ok := cond.(*value.Boolean)
+
+	if !ok {
+		return nil, errors.RuntimeError{Msg: "While condition must be a boolean value."}
+	}
+
+	for boolCond.Value {
+		_, err := i.evalNode(s.Block)
+
+		if errs.Is(err, errors.BreakError{}) {
+			break
+		}
+
+		if err != nil && !errs.Is(err, errors.ContinueError{}) {
+			return nil, err
+		}
+
+		cond, _ = i.evalNode(s.Condition)
+		boolCond = cond.(*value.Boolean)
+	}
+
+	return nil, nil
+}
+
+func (i *interpreter) VisitBrkStmt(_ ast.BreakStmt) (interface{}, error) {
+	return nil, errors.BreakError{}
+}
+
+func (i *interpreter) VisitContStmt(_ ast.ContinueStmt) (interface{}, error) {
+	return nil, errors.ContinueError{}
+}
+
 func New() *interpreter {
 	return &interpreter{
 		env: environment.New[value.Value](nil),
