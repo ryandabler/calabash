@@ -14,6 +14,7 @@ type evisitor[T any] interface {
 	VisitBottomLitExpr(e ast.BottomLiteralExpr) (T, error)
 	VisitBooleanLitExpr(e ast.BooleanLiteralExpr) (T, error)
 	VisitTupleLitExpr(e ast.TupleLiteralExpr) (T, error)
+	VisitRecordLitExpr(e ast.RecordLiteralExpr) (T, error)
 	VisitIdentifierExpr(e ast.IdentifierExpr) (T, error)
 	VisitFuncExpr(e ast.FuncExpr) (T, error)
 	VisitCallExpr(e ast.CallExpr) (T, error)
@@ -81,6 +82,11 @@ func AcceptExpr[T any](e ast.Expr, v evisitor[T]) (T, error) {
 		e := e.(ast.TupleLiteralExpr)
 
 		return v.VisitTupleLitExpr(e)
+
+	case ast.RecordLiteralExpr:
+		e := e.(ast.RecordLiteralExpr)
+
+		return v.VisitRecordLitExpr(e)
 
 	case ast.IdentifierExpr:
 		e := e.(ast.IdentifierExpr)

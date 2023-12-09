@@ -764,6 +764,32 @@ func (p *parser) proto() (ast.Expr, error) {
 	return ast.ProtoExpr{MethodSet: ms}, nil
 }
 
+func (p *parser) record() (ast.Expr, error) {
+	contents := []KeyVal{}
+
+	for !p.isThenEat(tokentype.RIGHT_BRACE) {
+		kv, err := p.recordKeyValue()
+
+		if err != nil {
+			return nil, err
+		}
+
+		contents = append(contents, kv)
+
+		for p.isThenEat(tokentype.COMMA) {
+			kv, err = p.recordKeyValue()
+
+			if err != nil {
+				return nil, err
+			}
+
+			contents = append(contents, kv)
+		}
+	}
+
+	return ast.RecordLiteralExpr{Contents: contents}, nil
+}
+
 func (p *parser) fundamental() (ast.Expr, error) {
 	if p.atEnd() {
 		return nil, errors.ParseError{Msg: "Unexpected end of input"}
@@ -825,6 +851,10 @@ func (p *parser) fundamental() (ast.Expr, error) {
 
 	if p.isThenEat(tokentype.PROTO) {
 		return p.proto()
+	}
+
+	if p.isThenEat(tokentype.LEFT_BRACE) {
+		return p.record()
 	}
 
 	t := p.tokens[p.i]

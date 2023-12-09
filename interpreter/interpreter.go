@@ -355,6 +355,46 @@ func (i *interpreter) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 	return &value.Proto{Keys: ks, Methods: vs}, nil
 }
 
+func (i *interpreter) VisitRecordLitExpr(e ast.RecordLiteralExpr) (interface{}, error) {
+	vs := make([]struct {
+		K value.Value
+		V value.Value
+	}, len(e.Contents))
+
+	for idx, e := range e.Contents {
+		k, err := i.evalNode(e.Key)
+
+		if err != nil {
+			return nil, err
+		}
+
+		kVal, ok := k.(value.Value)
+
+		if !ok {
+			return nil, errors.RuntimeError{Msg: "Did not receive a Value for key"}
+		}
+
+		v, err := i.evalNode(e.Val)
+
+		if err != nil {
+			return nil, err
+		}
+
+		vVal, ok := v.(value.Value)
+
+		if !ok {
+			return nil, errors.RuntimeError{Msg: "Did not receive a Value for value"}
+		}
+
+		vs[idx] = struct {
+			K value.Value
+			V value.Value
+		}{K: kVal, V: vVal}
+	}
+
+	return value.NewRecord(vs), nil
+}
+
 func (i *interpreter) VisitGetExpr(e ast.GetExpr) (interface{}, error) {
 	gettee, err := i.evalNode(e.Gettee)
 

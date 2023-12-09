@@ -176,6 +176,21 @@ func (e ProtoExpr) n() nodetype {
 	return nt
 }
 
+type RecordLiteralExpr struct {
+	Contents []struct {
+		Key Expr
+		Val Expr
+	}
+}
+
+func (e RecordLiteralExpr) e() nodetype {
+	return nt
+}
+
+func (e RecordLiteralExpr) n() nodetype {
+	return nt
+}
+
 type GetExpr struct {
 	Gettee Expr
 	Field  Expr

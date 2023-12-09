@@ -65,4 +65,26 @@ func init() {
 			return NewString(fmt.Sprint(n.Value)), nil
 		},
 	}
+
+	ProtoRecord.Methods["s:\"get\""] = &ProtoMethod{
+		ParamList: []ast.Identifier{
+			{Name: tokens.New(tokentype.IDENTIFIER, "k", 0, 0), Mut: false},
+		},
+		call: func(me Value, e Evaluator) (interface{}, error) {
+			r, ok := me.(*Record)
+
+			if !ok {
+				return nil, errors.RuntimeError{Msg: "Expect 'me' to be a record"}
+			}
+
+			k := e.Dump().Env.Get("k")
+			v, ok := r.Entries[k.Hash()]
+
+			if !ok {
+				return nil, errors.RuntimeError{Msg: fmt.Sprintf("Record does not have key %q", k)}
+			}
+
+			return v, nil
+		},
+	}
 }

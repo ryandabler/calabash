@@ -119,3 +119,30 @@ func (p *parser) protoMethod() (ast.ProtoMethod, error) {
 
 	return ast.ProtoMethod{K: k, M: m}, nil
 }
+
+type KeyVal = struct {
+	Key ast.Expr
+	Val ast.Expr
+}
+
+func (p *parser) recordKeyValue() (KeyVal, error) {
+	k, err := p.fundamental()
+
+	if err != nil {
+		return KeyVal{}, err
+	}
+
+	_, err = p.eat(tokentype.MINUS_GREAT)
+
+	if err != nil {
+		return KeyVal{}, err
+	}
+
+	v, err := p.expression()
+
+	if err != nil {
+		return KeyVal{}, err
+	}
+
+	return KeyVal{Key: k, Val: v}, nil
+}

@@ -98,6 +98,27 @@ func (a *analyzer) VisitTupleLitExpr(e ast.TupleLiteralExpr) (interface{}, error
 	return nil, nil
 }
 
+func (a *analyzer) VisitRecordLitExpr(e ast.RecordLiteralExpr) (interface{}, error) {
+	for _, v := range e.Contents {
+		k := v.Key
+		v := v.Val
+
+		err := a.analyzeNode(k)
+
+		if err != nil {
+			return nil, err
+		}
+
+		err = a.analyzeNode(v)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return nil, nil
+}
+
 func (a *analyzer) VisitIdentifierExpr(e ast.IdentifierExpr) (interface{}, error) {
 	if !a.env.Has(e.Name.Lexeme) {
 		return nil, errors.StaticError{Msg: "Cannot reference an undeclared identifier."}

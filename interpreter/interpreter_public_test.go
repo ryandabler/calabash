@@ -214,6 +214,131 @@ func TestEval(t *testing.T) {
 				},
 			},
 			{
+				name: "literal record 1",
+				text: "{}",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					rec, ok := v.(*value.Record)
+
+					if !ok {
+						return errors.New("Did not receive a record")
+					}
+
+					if len(rec.Entries) > 0 {
+						return errors.New("Record should be empty")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "literal record 2",
+				text: "{ 'a' -> 1, bottom -> 2, 5 -> 3, true -> 4, [1] -> 5, {} -> 6, (1 + 9) -> 7 }",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					rec, ok := v.(*value.Record)
+
+					if !ok {
+						return errors.New("Did not receive a record")
+					}
+
+					if len(rec.Entries) != 7 {
+						return errors.New("Record should have seven properties")
+					}
+
+					v1 := value.NewString("a")
+					v2 := &value.Bottom{}
+					v3 := value.NewNumber(5)
+					v4 := value.NewBoolean(true)
+					v5 := value.NewTuple([]value.Value{value.NewNumber(1)})
+					v6 := value.NewRecord([]struct {
+						K value.Value
+						V value.Value
+					}{})
+					v7 := value.NewNumber(10)
+
+					if v, ok := rec.Entries[v1.Hash()]; !ok {
+						return errors.New("Record does not contain key 'a'")
+					} else if !reflect.DeepEqual(v, value.NewNumber(1)) {
+						return errors.New("Record property 'a' was not assigned the value 1")
+					}
+
+					if v, ok := rec.Entries[v2.Hash()]; !ok {
+						return errors.New("Record does not contain key bottom")
+					} else if !reflect.DeepEqual(v, value.NewNumber(2)) {
+						return errors.New("Record property bottom was not assigned the value 2")
+					}
+
+					if v, ok := rec.Entries[v3.Hash()]; !ok {
+						return errors.New("Record does not contain key 5")
+					} else if !reflect.DeepEqual(v, value.NewNumber(3)) {
+						return errors.New("Record property 5 was not assigned the value 3")
+					}
+
+					if v, ok := rec.Entries[v4.Hash()]; !ok {
+						return errors.New("Record does not contain key true")
+					} else if !reflect.DeepEqual(v, value.NewNumber(4)) {
+						return errors.New("Record property true was not assigned the value 4")
+					}
+
+					if v, ok := rec.Entries[v5.Hash()]; !ok {
+						return errors.New("Record does not contain key [1]")
+					} else if !reflect.DeepEqual(v, value.NewNumber(5)) {
+						return errors.New("Record property [1] was not assigned the value 5")
+					}
+					if v, ok := rec.Entries[v6.Hash()]; !ok {
+						return errors.New("Record does not contain key {}")
+					} else if !reflect.DeepEqual(v, value.NewNumber(6)) {
+						return errors.New("Record property {} was not assigned the value 6")
+					}
+					if v, ok := rec.Entries[v7.Hash()]; !ok {
+						return errors.New("Record does not contain key 10")
+					} else if !reflect.DeepEqual(v, value.NewNumber(7)) {
+						return errors.New("Record property 10 was not assigned the value 7")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "literal record 3",
+				text: "let a = fn () -> {}; { a -> 1}",
+				validate: func(v interface{}, is interpreter.IntpState) error {
+					rec, ok := v.(*value.Record)
+
+					if !ok {
+						return errors.New("Did not receive a record")
+					}
+
+					if len(rec.Entries) != 1 {
+						return errors.New("Record should have seven properties")
+					}
+
+					fn := is.Env.Get("a")
+
+					val, ok := rec.Entries[fn.Hash()]
+
+					if !ok {
+						return errors.New("Function was not properly keyed to object")
+					}
+
+					if !reflect.DeepEqual(val, value.NewNumber(1)) {
+						return errors.New("Value for function key is not the number 1")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "literal record proto 'get'",
+				text: "{ 'a' -> 1 }->'get'('a')",
+				validate: func(v interface{}, is interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewNumber(1)) {
+						return errors.New("Did not properly get value for key 'a'")
+					}
+
+					return nil
+				},
+			},
+			{
 				name: "binary addition 1",
 				text: "1 + 1",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
@@ -1127,6 +1252,10 @@ func TestEval(t *testing.T) {
 			{
 				name: "while loop with non-boolean condition expression 2",
 				text: "while 'true' { 1 + 1 }",
+			},
+			{
+				name: "getting record property that doesn't exist",
+				text: "{ 'a' -> 1 }->'get'(1)",
 			},
 		}
 

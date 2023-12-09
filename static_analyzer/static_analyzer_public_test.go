@@ -90,6 +90,14 @@ func TestAnalyze(t *testing.T) {
 				text: "fn () {}()",
 			},
 			{
+				name: "record expressions 1",
+				text: "{ 1 -> 1, 'a' -> 1, true -> 1, bottom -> 1, [1] -> 1, {} -> 1, proto { 1 -> fn () {} } -> 1, ('a' + 'b') -> 1 }",
+			},
+			{
+				name: "record expressions 2",
+				text: "let a = 1; { a -> a }",
+			},
+			{
 				name: "get expression 1",
 				text: "1->'b'",
 			},
@@ -220,6 +228,14 @@ func TestAnalyze(t *testing.T) {
 			{
 				name: "proto with undeclared identifier in method",
 				text: "proto { 'a' -> fn() -> a }",
+			},
+			{
+				name: "record with undeclared identifier key",
+				text: " { a -> 1 }",
+			},
+			{
+				name: "record with undeclared identifier value",
+				text: " { 1 -> a }",
 			},
 			{
 				name: "get expression with unresolved gettee variable",

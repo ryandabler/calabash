@@ -278,6 +278,27 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 		return true
 	}
 
+	tA19, okA := a.(ast.RecordLiteralExpr)
+	tB19, okB := b.(ast.RecordLiteralExpr)
+
+	if okA && okB {
+		if len(tA19.Contents) != len(tB19.Contents) {
+			return false
+		}
+
+		for i, v := range tA19.Contents {
+			vv := tB19.Contents[i]
+
+			e := nodesAreEqual(v.Key, vv.Key) && nodesAreEqual(v.Val, vv.Val)
+
+			if !e {
+				return false
+			}
+		}
+
+		return true
+	}
+
 	return false
 }
 
@@ -461,6 +482,214 @@ func TestParse(t *testing.T) {
 										ast.ReturnStmt{Expr: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "3", 0, 0)}},
 									},
 								}},
+							},
+						},
+					},
+				},
+			},
+			{
+				name: "fundamental record 1",
+				text: "{}",
+				expected: []ast.Node{
+					ast.RecordLiteralExpr{},
+				},
+			},
+			{
+				name: "fundamental record 2",
+				text: "{ 1 -> 1, 'b' -> 1, true -> 1, false -> 1, { 1 -> 1 } -> 1, bottom -> 1, [1] -> 1, a -> 1, fn () {} -> 1, (fn () -> 1) -> 1, (1 + 2) -> 1, proto { 1 -> fn () {} } -> 1}",
+				expected: []ast.Node{
+					ast.RecordLiteralExpr{
+						Contents: []struct {
+							Key ast.Expr
+							Val ast.Expr
+						}{
+							{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							},
+							{
+								ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "'b'", 0, 0)},
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							},
+							{
+								ast.BooleanLiteralExpr{Value: tokens.New(tokentype.TRUE, "true", 0, 0)},
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							},
+							{
+								ast.BooleanLiteralExpr{Value: tokens.New(tokentype.FALSE, "false", 0, 0)},
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							},
+							{
+								ast.RecordLiteralExpr{
+									Contents: []struct {
+										Key ast.Expr
+										Val ast.Expr
+									}{
+										{
+											ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+											ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+										},
+									},
+								},
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							},
+							{
+								ast.BottomLiteralExpr{Token: tokens.New(tokentype.BOTTOM, "bottom", 0, 0)},
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							},
+							{
+								ast.TupleLiteralExpr{
+									Contents: []ast.Expr{
+										ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+									},
+								},
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							},
+							{
+								ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							},
+							{
+								ast.FuncExpr{},
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							},
+							{
+								ast.GroupingExpr{
+									Expr: ast.FuncExpr{
+										Body: ast.Block{
+											Contents: []ast.Node{
+												ast.ReturnStmt{Expr: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)}},
+											},
+										},
+									},
+								},
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							},
+							{
+								ast.GroupingExpr{
+									Expr: ast.BinaryExpr{
+										Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+										Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+										Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
+									},
+								},
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							},
+							{
+								ast.ProtoExpr{
+									MethodSet: []ast.ProtoMethod{
+										{
+											K: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+											M: ast.FuncExpr{},
+										},
+									},
+								},
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							},
+						},
+					},
+				},
+			},
+			{
+				name: "fundamental record 3",
+				text: "{ 1 -> 1, 1 -> 'a', 1 -> true, 1 -> false, 1 -> bottom, 1 -> [1], 1 -> { 1 -> 1 }, 1 -> [] -> 'push', 1 -> a, 1 -> a(), 1 -> fn () {}, 1 -> fn () -> 1, 1 -> 1 + 2, 1 -> proto { 1 -> fn () {} } }",
+				expected: []ast.Node{
+					ast.RecordLiteralExpr{
+						Contents: []struct {
+							Key ast.Expr
+							Val ast.Expr
+						}{
+							{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							},
+							{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "'a'", 0, 0)},
+							},
+							{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.BooleanLiteralExpr{Value: tokens.New(tokentype.TRUE, "true", 0, 0)},
+							},
+							{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.BooleanLiteralExpr{Value: tokens.New(tokentype.FALSE, "false", 0, 0)},
+							},
+							{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.BottomLiteralExpr{Token: tokens.New(tokentype.BOTTOM, "bottom", 0, 0)},
+							},
+							{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.TupleLiteralExpr{
+									Contents: []ast.Expr{
+										ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+									},
+								},
+							},
+							{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.RecordLiteralExpr{
+									Contents: []struct {
+										Key ast.Expr
+										Val ast.Expr
+									}{
+										{
+											ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+											ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+										},
+									},
+								},
+							},
+							{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.GetExpr{
+									Gettee: ast.TupleLiteralExpr{},
+									Field:  ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "'push'", 0, 0)},
+								},
+							},
+							{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
+							},
+							{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.CallExpr{
+									Callee: ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
+								},
+							},
+							{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.FuncExpr{},
+							},
+							{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.FuncExpr{
+									Body: ast.Block{
+										Contents: []ast.Node{
+											ast.ReturnStmt{Expr: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)}},
+										},
+									},
+								},
+							},
+							{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.BinaryExpr{
+									Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+									Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+									Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
+								},
+							},
+							{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.ProtoExpr{
+									MethodSet: []ast.ProtoMethod{
+										{
+											K: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+											M: ast.FuncExpr{},
+										},
+									},
+								},
 							},
 						},
 					},
@@ -1197,6 +1426,8 @@ func TestParse(t *testing.T) {
 			{name: "malformed function expression 3", text: "fn (a -> 1"},
 			{name: "malformed function expression 3", text: "fn (a) -> 1 +"},
 			{name: "malformed function expression 3", text: "fn (a) { 1 + }"},
+			{name: "malformed record expression 1", text: "{1 -> }"},
+			{name: "malformed record expression 2", text: "{1 -> 1,}"},
 			{name: "malformed call expression", text: "a(if)"},
 			{name: "malformed get expression", text: "1->if true {}"},
 			{name: "malformed variable declaration 1", text: "let 'ab';"},
