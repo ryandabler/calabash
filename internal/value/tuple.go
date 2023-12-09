@@ -17,7 +17,7 @@ func (v *Tuple) v() vtype {
 
 func (v *Tuple) Hash() string {
 	if v.hash == "" {
-		v.hash = fmt.Sprintf("tpl:%s", slice.Fold(v.Items, "", func(i Value, acc string) string {
+		v.hash = fmt.Sprintf("tpl:%s", slice.Fold(v.Items, "", func(i Value, acc string, _ int) string {
 			return acc + "," + i.Hash()
 		}))
 	}

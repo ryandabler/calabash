@@ -14,7 +14,7 @@ func (v *Proto) v() vtype {
 
 func (v *Proto) Hash() string {
 	if v.hash == "" {
-		v.hash = slice.Fold(v.Keys, "prt:", func(k string, acc string) string {
+		v.hash = slice.Fold(v.Keys, "prt:", func(k string, acc string, _ int) string {
 			return acc + k + "->" + v.Methods[k].Hash()
 		})
 	}
