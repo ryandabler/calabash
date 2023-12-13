@@ -4,6 +4,7 @@ import (
 	"calabash/ast"
 	"calabash/errors"
 	"calabash/internal/environment"
+	"calabash/internal/stack"
 	"calabash/internal/visitor"
 	"fmt"
 )
@@ -17,7 +18,7 @@ const (
 
 type analyzer struct {
 	env *environment.Environment[identRecord]
-	loc staticloc
+	loc *stack.Stack[staticloc]
 }
 
 func (a *analyzer) Analyze(ast []ast.Node) error {
@@ -169,7 +170,7 @@ func (a *analyzer) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 }
 
 func (a *analyzer) VisitMeExpr(e ast.MeExpr) (interface{}, error) {
-	if a.loc != proto_method {
+	if !a.loc.HasWith(proto_method, func(a, b staticloc) bool { return a == b }) {
 		return nil, errors.StaticError{Msg: "'me' can only be referenced in proto methods"}
 	}
 
@@ -186,9 +187,10 @@ func (a *analyzer) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 
 		// Set static location to be `proto_method` to ensure any `me` references
 		// are accepted
-		a.loc = proto_method
+		a.loc.Push(proto_method)
+		defer a.loc.Pop()
+
 		err = a.analyzeNode(m.M)
-		a.loc = none
 
 		if err != nil {
 			return nil, err
@@ -366,6 +368,6 @@ func (a *analyzer) VisitBrkStmt(s ast.BreakStmt) (interface{}, error) {
 func New() *analyzer {
 	return &analyzer{
 		env: environment.New[identRecord](nil),
-		loc: none,
+		loc: stack.New[staticloc](),
 	}
 }
