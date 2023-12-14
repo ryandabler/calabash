@@ -189,7 +189,7 @@ func (a *analyzer) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 }
 
 func (a *analyzer) VisitMeExpr(e ast.MeExpr) (interface{}, error) {
-	if !a.loc.HasWith(proto_method, func(a, b staticloc) bool { return a == b }) {
+	if !a.loc.HasWith(func(a staticloc) bool { return a == proto_method }) {
 		return nil, errors.StaticError{Msg: "'me' can only be referenced in proto methods"}
 	}
 
@@ -220,7 +220,7 @@ func (a *analyzer) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 }
 
 func (a *analyzer) VisitQuestionExpr(e ast.QuestionExpr) (interface{}, error) {
-	if !a.loc.HasWith(pipe, func(a, b staticloc) bool { return a == b }) {
+	if !a.loc.HasWith(func(a staticloc) bool { return a == pipe }) {
 		return nil, errors.StaticError{Msg: "'?' can only be referenced in pipe expressions"}
 	}
 

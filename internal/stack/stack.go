@@ -28,10 +28,9 @@ func (s *Stack[T]) Size() int {
 	return s.c
 }
 
-func (s *Stack[T]) HasWith(v T, f func(a T, b T) bool) bool {
+func (s *Stack[T]) HasWith(f func(v T) bool) bool {
 	for i := 0; i < s.c; i++ {
-		a := s.arr[i]
-		if f(v, a) {
+		if f(s.arr[i]) {
 			return true
 		}
 	}
