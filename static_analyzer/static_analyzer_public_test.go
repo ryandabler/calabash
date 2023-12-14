@@ -157,6 +157,14 @@ func TestAnalyze(t *testing.T) {
 				name: "while statement with variable lookup in block",
 				text: "let a = 1; while a == 1 { a }",
 			},
+			{
+				name: "return statement in function",
+				text: "fn () { return 1; }",
+			},
+			{
+				name: "return statement in proto methods",
+				text: "proto { 'a' -> fn() { return 2; } }",
+			},
 		}
 
 		for _, e := range table {
@@ -316,6 +324,14 @@ func TestAnalyze(t *testing.T) {
 			{
 				name: "while statement with unresolved block variable",
 				text: "while true { a }",
+			},
+			{
+				name: "top level return statements",
+				text: "return 3;",
+			},
+			{
+				name: "return statements in loop",
+				text: "while true { return 3; }",
 			},
 		}
 

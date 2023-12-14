@@ -14,6 +14,7 @@ type satisfaction int
 
 const (
 	none staticloc = iota
+	function
 	proto_method
 	pipe
 )
@@ -156,6 +157,9 @@ func (a *analyzer) VisitFuncExpr(e ast.FuncExpr) (interface{}, error) {
 	for _, n := range e.Params {
 		a.env.Add(n.Name.Lexeme, identRecord{mut: n.Mut})
 	}
+
+	a.loc.Push(function)
+	defer a.loc.Pop()
 
 	_, err := a.VisitBlock(e.Body)
 
@@ -355,6 +359,14 @@ func (a *analyzer) VisitBlock(s ast.Block) (interface{}, error) {
 }
 
 func (a *analyzer) VisitRetStmt(s ast.ReturnStmt) (interface{}, error) {
+	if a.loc.Size() == 0 {
+		return nil, errors.StaticError{Msg: "top-level return statements not allowed"}
+	}
+
+	if !a.loc.HasWith(func(v staticloc) bool { return v == function }) {
+		return nil, errors.StaticError{Msg: "return statements can only be in functions and proto methods"}
+	}
+
 	return visitor.Accept[interface{}](s.Expr, a)
 }
 
