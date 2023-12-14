@@ -164,6 +164,18 @@ func (e MeExpr) n() nodetype {
 	return nt
 }
 
+type QuestionExpr struct {
+	Token tokens.Token
+}
+
+func (e QuestionExpr) e() nodetype {
+	return nt
+}
+
+func (e QuestionExpr) n() nodetype {
+	return nt
+}
+
 type ProtoExpr struct {
 	MethodSet []ProtoMethod
 }

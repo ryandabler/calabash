@@ -93,6 +93,23 @@ func (i *interpreter) evalBooleanOr(l interface{}, r ast.Expr) (interface{}, err
 	return value.NewBoolean(lb.Value || rb.Value), nil
 }
 
+func (i *interpreter) evalPipe(l interface{}, r ast.Expr) (interface{}, error) {
+	lv, ok := l.(value.Value)
+
+	if !ok {
+		return nil, errors.RuntimeError{Msg: "Left hand side of pipe is not a value"}
+	}
+
+	e := environment.New(i.env)
+	i.env = e
+
+	defer func() { i.env = i.env.Parent }()
+
+	i.env.Add("?", lv)
+
+	return i.evalNode(r)
+}
+
 func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 	l, err := i.evalNode(e.Left)
 
@@ -108,6 +125,10 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 
 	if op == tokentype.STROKE_STROKE {
 		return i.evalBooleanOr(l, e.Right)
+	}
+
+	if op == tokentype.STROKE_GREAT {
+		return i.evalPipe(l, e.Right)
 	}
 
 	r, err := i.evalNode(e.Right)
@@ -392,6 +413,10 @@ func (i *interpreter) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 	}
 
 	return &value.Proto{Keys: ks, Methods: vs}, nil
+}
+
+func (i *interpreter) VisitQuestionExpr(e ast.QuestionExpr) (interface{}, error) {
+	return i.env.Get("?"), nil
 }
 
 func (i *interpreter) VisitRecordLitExpr(e ast.RecordLiteralExpr) (interface{}, error) {

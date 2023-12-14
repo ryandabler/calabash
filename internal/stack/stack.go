@@ -20,6 +20,14 @@ func (s *Stack[T]) Pop() T {
 	return s.arr[s.c]
 }
 
+func (s *Stack[T]) Peek() T {
+	return s.arr[s.c-1]
+}
+
+func (s *Stack[T]) Size() int {
+	return s.c
+}
+
 func (s *Stack[T]) HasWith(v T, f func(a T, b T) bool) bool {
 	for i := 0; i < s.c; i++ {
 		a := s.arr[i]

@@ -64,7 +64,12 @@ MULTI_EXPR
     ;
 
 EXPRESSION
-    : BOOLEAN_OR
+    : PIPE
+    ;
+
+PIPE
+    : PIPE '|>' BOOLEAN_OR
+    | BOOLEAN_OR
     ;
 
 BOOLEAN_OR
@@ -127,6 +132,7 @@ FUNDAMENTAL
     | PROTOTYPE
     | 'me'
     | RECORD
+    | '?'
     ;
 
 FUNCTION

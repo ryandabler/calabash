@@ -299,6 +299,13 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 		return true
 	}
 
+	_, okA = a.(ast.QuestionExpr)
+	_, okB = b.(ast.QuestionExpr)
+
+	if okA && okB {
+		return true
+	}
+
 	return false
 }
 
@@ -811,6 +818,47 @@ func TestParse(t *testing.T) {
 							Field: ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "'def'", 0, 0)},
 						},
 						Arguments: []ast.Expr{},
+					},
+				},
+			},
+			{
+				name: "pipe expression 1",
+				text: "1 |> 'a'",
+				expected: []ast.Node{
+					ast.BinaryExpr{
+						Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+						Right:    ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "'a'", 0, 0)},
+						Operator: tokens.New(tokentype.STROKE_GREAT, "|>", 0, 0),
+					},
+				},
+			},
+			{
+				name: "pipe expression 2",
+				text: "1 |> 'a' |> bottom",
+				expected: []ast.Node{
+					ast.BinaryExpr{
+						Left: ast.BinaryExpr{
+							Left:     ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							Right:    ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "'a'", 0, 0)},
+							Operator: tokens.New(tokentype.STROKE_GREAT, "|>", 0, 0),
+						},
+						Right:    ast.BottomLiteralExpr{Token: tokens.New(tokentype.BOTTOM, "bottom", 0, 0)},
+						Operator: tokens.New(tokentype.STROKE_GREAT, "|>", 0, 0),
+					},
+				},
+			},
+			{
+				name: "pipe expression 3",
+				text: "1 |> ? + 1",
+				expected: []ast.Node{
+					ast.BinaryExpr{
+						Left: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+						Right: ast.BinaryExpr{
+							Left:     ast.QuestionExpr{Token: tokens.New(tokentype.QUESTION, "?", 0, 0)},
+							Right:    ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+							Operator: tokens.New(tokentype.PLUS, "+", 0, 0),
+						},
+						Operator: tokens.New(tokentype.STROKE_GREAT, "|>", 0, 0),
 					},
 				},
 			},

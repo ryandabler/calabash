@@ -395,7 +395,33 @@ func (p *parser) brkStmt() (ast.Node, error) {
 }
 
 func (p *parser) expression() (ast.Expr, error) {
-	return p.booleanOr()
+	return p.pipe()
+}
+
+func (p *parser) pipe() (ast.Expr, error) {
+	left, err := p.booleanOr()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for p.is(tokentype.STROKE_GREAT) {
+		op, _ := p.eat(tokentype.STROKE_GREAT)
+
+		right, err := p.booleanOr()
+
+		if err != nil {
+			return nil, err
+		}
+
+		left = ast.BinaryExpr{
+			Left:     left,
+			Right:    right,
+			Operator: op,
+		}
+	}
+
+	return left, nil
 }
 
 func (p *parser) booleanOr() (ast.Expr, error) {
@@ -847,6 +873,11 @@ func (p *parser) fundamental() (ast.Expr, error) {
 	if p.is(tokentype.ME) {
 		s, _ := p.eat(tokentype.ME)
 		return ast.MeExpr{Token: s}, nil
+	}
+
+	if p.is(tokentype.QUESTION) {
+		q, _ := p.eat(tokentype.QUESTION)
+		return ast.QuestionExpr{Token: q}, nil
 	}
 
 	if p.isThenEat(tokentype.PROTO) {

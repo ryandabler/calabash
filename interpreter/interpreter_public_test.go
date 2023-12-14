@@ -559,6 +559,63 @@ func TestEval(t *testing.T) {
 				},
 			},
 			{
+				name: "pipe expression 1",
+				text: "1 |> ? + 1",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewNumber(2)) {
+						return errors.New("Pipe expression did not properly resolve value for '?'")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "pipe expression 2",
+				text: "1 |> ? + 1 |> 3 ** ?",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewNumber(9)) {
+						return errors.New("Pipe expression did not properly resolve value for chains of '?'")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "pipe expression can properly nest",
+				text: "1 |> ? + (2 |> ? - 1) |> 3 * ?",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewNumber(6)) {
+						return errors.New("Could not properly resolve nested '?'")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "container values can be composed from '?'",
+				text: "1 |> [?, ? + 1]",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewTuple([]value.Value{value.NewNumber(1), value.NewNumber(2)})) {
+						return errors.New("Could not properly build tuple from '?'")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "question mark does not remain after pipe expression",
+				text: "1 |> ? ",
+				validate: func(_ interface{}, i interpreter.IntpState) error {
+					q := i.Env.Get("?")
+
+					if q != nil {
+						return errors.New("? outlived the pipe expression")
+					}
+
+					return nil
+				},
+			},
+			{
 				name: "unary minus",
 				text: "-5",
 				validate: func(v interface{}, _ interpreter.IntpState) error {

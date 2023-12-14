@@ -102,6 +102,14 @@ func TestAnalyze(t *testing.T) {
 				text: "1->'b'",
 			},
 			{
+				name: "pipe expression 1",
+				text: "1 |> 2 + ?",
+			},
+			{
+				name: "pipe expression 2",
+				text: "1 |> (2 |> ?) + ?",
+			},
+			{
 				name: "assignment statement",
 				text: "let mut a; a = 1;",
 			},
@@ -244,6 +252,22 @@ func TestAnalyze(t *testing.T) {
 			{
 				name: "get expression with unresolved field variable",
 				text: "'a' -> a",
+			},
+			{
+				name: "question mark outside of pipe expression",
+				text: "1 + ?",
+			},
+			{
+				name: "question mark not referenced in a pipe expression",
+				text: "1 |> 1",
+			},
+			{
+				name: "question mark not referenced in an outer pipe expression",
+				text: "1 |> (1 |> ?)",
+			},
+			{
+				name: "question mark not referenced in an inner pipe expression",
+				text: "1 |> ? + (1 |> 1)",
 			},
 			{
 				name: "var declaration with undeclared identifier expression",

@@ -10,15 +10,22 @@ import (
 )
 
 type staticloc int
+type satisfaction int
 
 const (
 	none staticloc = iota
 	proto_method
+	pipe
+)
+
+const (
+	question satisfaction = iota
 )
 
 type analyzer struct {
-	env *environment.Environment[identRecord]
-	loc *stack.Stack[staticloc]
+	env           *environment.Environment[identRecord]
+	loc           *stack.Stack[staticloc]
+	satisfactions *stack.Stack[satisfaction]
 }
 
 func (a *analyzer) Analyze(ast []ast.Node) error {
@@ -47,11 +54,23 @@ func (a *analyzer) endScope() {
 	a.env = a.env.Parent
 }
 
-func (a *analyzer) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
-	err := a.analyzeNode(e.Left)
+func (a *analyzer) VisitBinaryExpr(e ast.BinaryExpr) (_ interface{}, err error) {
+	err = a.analyzeNode(e.Left)
 
 	if err != nil {
 		return nil, err
+	}
+
+	if e.Operator.Lexeme == "|>" {
+		a.loc.Push(pipe)
+
+		defer func() {
+			if a.loc.Peek() == pipe && (a.satisfactions.Size() == 0 || a.satisfactions.Pop() != question) {
+				err = errors.StaticError{Msg: "'?' was not referenced in a pipe expression"}
+			}
+
+			a.loc.Pop()
+		}()
 	}
 
 	err = a.analyzeNode(e.Right)
@@ -196,6 +215,16 @@ func (a *analyzer) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 			return nil, err
 		}
 	}
+
+	return nil, nil
+}
+
+func (a *analyzer) VisitQuestionExpr(e ast.QuestionExpr) (interface{}, error) {
+	if !a.loc.HasWith(pipe, func(a, b staticloc) bool { return a == b }) {
+		return nil, errors.StaticError{Msg: "'?' can only be referenced in pipe expressions"}
+	}
+
+	a.satisfactions.Push(question)
 
 	return nil, nil
 }
@@ -367,7 +396,8 @@ func (a *analyzer) VisitBrkStmt(s ast.BreakStmt) (interface{}, error) {
 
 func New() *analyzer {
 	return &analyzer{
-		env: environment.New[identRecord](nil),
-		loc: stack.New[staticloc](),
+		env:           environment.New[identRecord](nil),
+		loc:           stack.New[staticloc](),
+		satisfactions: stack.New[satisfaction](),
 	}
 }
