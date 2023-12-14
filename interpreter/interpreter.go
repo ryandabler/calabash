@@ -41,6 +41,58 @@ func (i *interpreter) evalNode(n ast.Node) (interface{}, error) {
 	return visitor.Accept[interface{}](n, i)
 }
 
+func (i *interpreter) evalBooleanAnd(l interface{}, r ast.Expr) (interface{}, error) {
+	lb, ok := l.(*value.Boolean)
+
+	if !ok {
+		return nil, errors.RuntimeError{Msg: "Left side of and expression is not a boolean"}
+	}
+
+	if lb.Value == false {
+		return value.NewBoolean(false), nil
+	}
+
+	ri, err := i.evalNode(r)
+
+	if err != nil {
+		return nil, err
+	}
+
+	rb, ok := ri.(*value.Boolean)
+
+	if !ok {
+		return nil, errors.RuntimeError{Msg: "Right side of and expression is not a boolean"}
+	}
+
+	return value.NewBoolean(lb.Value && rb.Value), nil
+}
+
+func (i *interpreter) evalBooleanOr(l interface{}, r ast.Expr) (interface{}, error) {
+	lb, ok := l.(*value.Boolean)
+
+	if !ok {
+		return nil, errors.RuntimeError{Msg: "Left side of or expression is not a boolean"}
+	}
+
+	if lb.Value == true {
+		return value.NewBoolean(true), nil
+	}
+
+	ri, err := i.evalNode(r)
+
+	if err != nil {
+		return nil, err
+	}
+
+	rb, ok := ri.(*value.Boolean)
+
+	if !ok {
+		return nil, errors.RuntimeError{Msg: "Right side of or expression is not a boolean"}
+	}
+
+	return value.NewBoolean(lb.Value || rb.Value), nil
+}
+
 func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 	l, err := i.evalNode(e.Left)
 
@@ -48,13 +100,21 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 		return nil, err
 	}
 
+	op := e.Operator.Type
+
+	if op == tokentype.AMPERSAND_AMPERSAND {
+		return i.evalBooleanAnd(l, e.Right)
+	}
+
+	if op == tokentype.STROKE_STROKE {
+		return i.evalBooleanOr(l, e.Right)
+	}
+
 	r, err := i.evalNode(e.Right)
 
 	if err != nil {
 		return nil, err
 	}
-
-	op := e.Operator.Type
 
 	if op == tokentype.EQUAL_EQUAL || op == tokentype.BANG_EQUAL {
 		l, okl := l.(value.Value)
@@ -71,27 +131,6 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 		}
 
 		return value.NewBoolean(b), nil
-	}
-
-	if isBooleanOp(op) && areBools(l, r) {
-		lb, _ := l.(*value.Boolean)
-		rb, _ := r.(*value.Boolean)
-
-		var bv *value.Boolean
-
-		if op == tokentype.AMPERSAND_AMPERSAND {
-			bv = value.NewBoolean(lb.Value && rb.Value)
-		}
-
-		if op == tokentype.STROKE_STROKE {
-			bv = value.NewBoolean(lb.Value || rb.Value)
-		}
-
-		return bv, nil
-	}
-
-	if isBooleanOp(op) {
-		return nil, errors.RuntimeError{Msg: "Both operands must be boolean values to use with boolean operators."}
 	}
 
 	// The '+' operator is overloaded for different data types. The left and right

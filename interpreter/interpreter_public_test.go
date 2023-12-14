@@ -515,8 +515,30 @@ func TestEval(t *testing.T) {
 				},
 			},
 			{
+				name: "binary boolean and short circuit",
+				text: "false && 1",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewBoolean(false)) {
+						return errors.New("Values does not equal false")
+					}
+
+					return nil
+				},
+			},
+			{
 				name: "binary boolean or",
 				text: "true || false",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewBoolean(true)) {
+						return errors.New("Values does not equal true")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "binary boolean or short circuit",
+				text: "true || 1",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
 					if !reflect.DeepEqual(v, value.NewBoolean(true)) {
 						return errors.New("Values does not equal true")
