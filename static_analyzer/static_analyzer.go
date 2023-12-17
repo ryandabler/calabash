@@ -17,6 +17,7 @@ const (
 	function
 	proto_method
 	pipe
+	while
 )
 
 const (
@@ -389,6 +390,9 @@ func (a *analyzer) VisitWhileStmt(s ast.WhileStmt) (interface{}, error) {
 		return nil, err
 	}
 
+	a.loc.Push(while)
+	defer a.loc.Pop()
+
 	err = a.analyzeNode(s.Block)
 
 	if err != nil {
@@ -399,10 +403,26 @@ func (a *analyzer) VisitWhileStmt(s ast.WhileStmt) (interface{}, error) {
 }
 
 func (a *analyzer) VisitContStmt(s ast.ContinueStmt) (interface{}, error) {
+	if a.loc.Size() == 0 {
+		return nil, errors.StaticError{Msg: "top level continue statements are not allowed"}
+	}
+
+	if a.loc.Peek() != while {
+		return nil, errors.StaticError{Msg: "continue statements are only allow in while loops"}
+	}
+
 	return nil, nil
 }
 
 func (a *analyzer) VisitBrkStmt(s ast.BreakStmt) (interface{}, error) {
+	if a.loc.Size() == 0 {
+		return nil, errors.StaticError{Msg: "top level break statements are not allowed"}
+	}
+
+	if a.loc.Peek() != while {
+		return nil, errors.StaticError{Msg: "break statements are only allow in while loops"}
+	}
+
 	return nil, nil
 }
 

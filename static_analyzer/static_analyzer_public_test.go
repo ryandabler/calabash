@@ -333,6 +333,30 @@ func TestAnalyze(t *testing.T) {
 				name: "return statements in loop",
 				text: "while true { return 3; }",
 			},
+			{
+				name: "top level continue statement",
+				text: "continue;",
+			},
+			{
+				name: "continue statement not in a loop",
+				text: "fn () { continue; }",
+			},
+			{
+				name: "continue statement not directly in a loop",
+				text: "while true { fn () { continue; } }",
+			},
+			{
+				name: "top level break statement",
+				text: "break;",
+			},
+			{
+				name: "break statement not in a loop",
+				text: "fn () { break; }",
+			},
+			{
+				name: "break statement not directly in a loop",
+				text: "while true { fn () { break; } }",
+			},
 		}
 
 		for _, e := range table {
