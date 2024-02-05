@@ -46,6 +46,62 @@ func (p *parser) varName() (ast.Identifier, error) {
 	return i, nil
 }
 
+func (p *parser) restVarName() (ast.Identifier, error) {
+	n, err := p.varName()
+
+	if err != nil {
+		return ast.Identifier{}, err
+	}
+
+	n.Rest = true
+
+	return n, nil
+}
+
+func (p *parser) functionParams() ([]ast.Identifier, error) {
+	ns := []ast.Identifier{}
+
+	if p.isThenEat(tokentype.DOT_DOT_DOT) {
+		n, err := p.restVarName()
+
+		if err != nil {
+			return nil, err
+		}
+
+		return append(ns, n), nil
+	}
+
+	n, err := p.varName()
+
+	if err != nil {
+		return nil, err
+	}
+
+	ns = append(ns, n)
+
+	for p.isThenEat(tokentype.COMMA) {
+		if p.isThenEat(tokentype.DOT_DOT_DOT) {
+			n, err := p.restVarName()
+
+			if err != nil {
+				return nil, err
+			}
+
+			return append(ns, n), nil
+		}
+
+		n, err := p.varName()
+
+		if err != nil {
+			return nil, err
+		}
+
+		ns = append(ns, n)
+	}
+
+	return ns, nil
+}
+
 func (p *parser) commaExpressions() ([]ast.Expr, error) {
 	e, err := p.expression()
 	es := []ast.Expr{}

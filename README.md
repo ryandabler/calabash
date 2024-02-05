@@ -136,7 +136,11 @@ FUNDAMENTAL
     ;
 
 FUNCTION
-    : 'fn' '(' MULTI_IDENT_DECL? ')' FUNC_BODY
+    : 'fn' '(' FUNC_ARGS? ')' FUNC_BODY
+    ;
+
+FUNC_ARGS
+    : MULTI_IDENT_DECL? [, '.' '.' '.' IDENT_DECL]?
     ;
 
 TUPLE

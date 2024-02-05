@@ -70,6 +70,10 @@ func TestAnalyze(t *testing.T) {
 				text: "fn (a, mut b) -> a + b",
 			},
 			{
+				name: "function expressions 2",
+				text: "fn (a, ...b) -> b",
+			},
+			{
 				name: "call expressions 1",
 				text: "let abc; abc()",
 			},

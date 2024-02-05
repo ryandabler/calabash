@@ -407,6 +407,58 @@ func TestParse(t *testing.T) {
 				},
 			},
 			{
+				name: "fundamental function 3",
+				text: "fn (a, b, ...c) { true }",
+				expected: []ast.Node{
+					ast.FuncExpr{
+						Params: []ast.Identifier{
+							{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0), Mut: false},
+							{Name: tokens.New(tokentype.IDENTIFIER, "b", 0, 0), Mut: false},
+							{Name: tokens.New(tokentype.IDENTIFIER, "c", 0, 0), Mut: false, Rest: true},
+						},
+						Body: ast.Block{
+							Contents: []ast.Node{
+								ast.BooleanLiteralExpr{Value: tokens.New(tokentype.TRUE, "true", 0, 0)},
+							},
+						},
+					},
+				},
+			},
+			{
+				name: "fundamental function 4",
+				text: "fn (a, b, ...mut c) { true }",
+				expected: []ast.Node{
+					ast.FuncExpr{
+						Params: []ast.Identifier{
+							{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0), Mut: false},
+							{Name: tokens.New(tokentype.IDENTIFIER, "b", 0, 0), Mut: false},
+							{Name: tokens.New(tokentype.IDENTIFIER, "c", 0, 0), Mut: true, Rest: true},
+						},
+						Body: ast.Block{
+							Contents: []ast.Node{
+								ast.BooleanLiteralExpr{Value: tokens.New(tokentype.TRUE, "true", 0, 0)},
+							},
+						},
+					},
+				},
+			},
+			{
+				name: "fundamental function ",
+				text: "fn (...mut a) { true }",
+				expected: []ast.Node{
+					ast.FuncExpr{
+						Params: []ast.Identifier{
+							{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0), Mut: true, Rest: true},
+						},
+						Body: ast.Block{
+							Contents: []ast.Node{
+								ast.BooleanLiteralExpr{Value: tokens.New(tokentype.TRUE, "true", 0, 0)},
+							},
+						},
+					},
+				},
+			},
+			{
 				name: "fundamental tuple 1",
 				text: "[1]",
 				expected: []ast.Node{
@@ -1471,9 +1523,10 @@ func TestParse(t *testing.T) {
 			{name: "malformed boolean or expression", text: "true || !"},
 			{name: "malformed function expression 1", text: "fn a -> 1"},
 			{name: "malformed function expression 2", text: "fn (1) -> 1"},
-			{name: "malformed function expression 3", text: "fn (a -> 1"},
-			{name: "malformed function expression 3", text: "fn (a) -> 1 +"},
 			{name: "malformed function expression 3", text: "fn (a) { 1 + }"},
+			{name: "malformed function expression 4", text: "fn (a -> 1"},
+			{name: "malformed function expression 5", text: "fn (a) -> 1 +"},
+			{name: "malformed function expression 6", text: "fn (a, ...b, c) -> 1"},
 			{name: "malformed record expression 1", text: "{1 -> }"},
 			{name: "malformed record expression 2", text: "{1 -> 1,}"},
 			{name: "malformed call expression", text: "a(if)"},

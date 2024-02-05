@@ -228,6 +228,7 @@ func (s VarDeclStmt) n() nodetype {
 type Identifier struct {
 	Name tokens.Token
 	Mut  bool
+	Rest bool
 }
 
 func (s Identifier) n() nodetype {

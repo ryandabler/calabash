@@ -773,6 +773,66 @@ func TestEval(t *testing.T) {
 				},
 			},
 			{
+				name: "functions with rest param should be partially applied if less than 'all but rest param' are applied",
+				text: "let a = fn(a, b, ...c) -> 1; a(1)",
+				validate: func(v interface{}, i interpreter.IntpState) error {
+					_, ok := v.(*value.Function)
+
+					if !ok {
+						return errors.New("Partially applied function did not return a function")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "functions with rest param should be called if 'all but rest param' are applied",
+				text: "let a = fn(a, b, ...c) -> 1; a(1, 2)",
+				validate: func(v interface{}, i interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewNumber(1)) {
+						return errors.New("rest param was not ignored as far as function application is concerned")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "functions with rest param wrap extra args into a tuple 1",
+				text: "let a = fn(...a) -> a; a(1,2,3)",
+				validate: func(v interface{}, i interpreter.IntpState) error {
+					expected := value.NewTuple([]value.Value{value.NewNumber(1), value.NewNumber(2), value.NewNumber(3)})
+					if !reflect.DeepEqual(v, expected) {
+						return errors.New("rest param did not tuple-ize values")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "functions with rest param wrap extra args into a tuple 2",
+				text: "let a = fn(a, ...b) -> b; a(1,2,3)",
+				validate: func(v interface{}, i interpreter.IntpState) error {
+					expected := value.NewTuple([]value.Value{value.NewNumber(2), value.NewNumber(3)})
+					if !reflect.DeepEqual(v, expected) {
+						return errors.New("rest param did not tuple-ize 'rest' values")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "function with rest param that isn't applied result in empty tuple",
+				text: "let a = fn(...a) -> a; a()",
+				validate: func(v interface{}, i interpreter.IntpState) error {
+					fmt.Printf("what are you: %#v", v)
+					if !reflect.DeepEqual(v, value.NewTuple(nil)) {
+						return errors.New("rest params with no applications should be empty tuples")
+					}
+
+					return nil
+				},
+			},
+			{
 				name: "function bodies create their own scope",
 				text: "let a, b; let c = fn(mut a) { a = 2; let c = 2; };",
 				validate: func(v interface{}, i interpreter.IntpState) error {

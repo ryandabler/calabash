@@ -2,6 +2,7 @@ package value
 
 import (
 	"calabash/ast"
+	"calabash/internal/slice"
 	"calabash/internal/uuid"
 )
 
@@ -47,7 +48,17 @@ func (v *Function) Params() []ast.Identifier {
 	return v.ParamList
 }
 
+func (v *Function) Rest() bool {
+	l, ok := slice.Last(v.ParamList)
+
+	return ok && l.Rest
+}
+
 func (v *Function) Arity() int {
+	if v.Rest() {
+		return len(v.ParamList) - len(v.Apps) - 1
+	}
+
 	return len(v.ParamList) - len(v.Apps)
 }
 

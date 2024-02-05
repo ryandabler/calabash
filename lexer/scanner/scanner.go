@@ -216,6 +216,31 @@ func (s *scanner) Read(str string) ([]tokens.Token, error) {
 				ts = append(ts, tokens.New(tokentype.STRING, string(cs), s.pos.row, col))
 			}
 
+		case '.':
+			{
+				s.next()
+
+				if s.char() != '.' {
+					if s.isEnd() {
+						return []tokens.Token{}, errors.ScanError{Msg: "Incomplete rest/spread token"}
+					}
+
+					return []tokens.Token{}, errors.ScanError{Msg: "Unrecognized token '.'"}
+				}
+
+				s.next()
+
+				if s.char() != '.' {
+					if s.isEnd() {
+						return []tokens.Token{}, errors.ScanError{Msg: "Incomplete rest/spread token"}
+					}
+
+					return []tokens.Token{}, errors.ScanError{Msg: "Unrecognized token '..'"}
+				}
+
+				ts = append(ts, tokens.New(tokentype.DOT_DOT_DOT, "...", s.pos.row, s.pos.col))
+			}
+
 		default:
 			tl := len(ts)
 

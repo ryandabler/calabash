@@ -54,5 +54,6 @@ const (
 	WHILE
 	CONTINUE
 	BREAK
+	DOT_DOT_DOT
 	EOF
 )

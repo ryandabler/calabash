@@ -349,6 +349,22 @@ func (i *interpreter) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 	fBodyEnv := environment.New[value.Value](nil)
 	args := append(vfunc.Args(), vals...)
 
+	// Combine "rest" args into a tuple
+	if vfunc.Rest() {
+		as := make([]value.Value, vfunc.Arity()+1)
+
+		for i, p := range vfunc.Params() {
+			if p.Rest {
+				as[i] = value.NewTuple(args[i:])
+				break
+			}
+
+			as[i] = args[i]
+		}
+
+		args = as
+	}
+
 	for idx, ident := range vfunc.Params() {
 		fBodyEnv.Add(ident.Name.Lexeme, args[idx])
 	}

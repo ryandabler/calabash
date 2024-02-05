@@ -29,4 +29,5 @@ type Caller interface {
 	Arity() int
 	Call(Evaluator) (interface{}, error)
 	Hash() string
+	Rest() bool
 }

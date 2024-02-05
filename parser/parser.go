@@ -711,7 +711,7 @@ func (p *parser) function() (ast.Expr, error) {
 	var idents []ast.Identifier
 
 	if !p.is(tokentype.RIGHT_PAREN) {
-		idents, err = p.varDeclarationNames()
+		idents, err = p.functionParams()
 
 		if err != nil {
 			return nil, err
