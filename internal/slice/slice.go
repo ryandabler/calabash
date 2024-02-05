@@ -23,3 +23,13 @@ func Fold[T any, V any](as []T, i V, f func(T, V, int) V) V {
 
 	return i
 }
+
+func Last[T any](as []T) (T, bool) {
+	var empty T
+
+	if len(as) == 0 {
+		return empty, false
+	}
+
+	return as[len(as)-1], true
+}
