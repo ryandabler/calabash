@@ -868,7 +868,6 @@ func TestEval(t *testing.T) {
 				name: "function with rest param that isn't applied result in empty tuple",
 				text: "let a = fn(...a) -> a; a()",
 				validate: func(v interface{}, i interpreter.IntpState) error {
-					fmt.Printf("what are you: %#v", v)
 					if !reflect.DeepEqual(v, value.NewTuple(nil)) {
 						return errors.New("rest params with no applications should be empty tuples")
 					}
