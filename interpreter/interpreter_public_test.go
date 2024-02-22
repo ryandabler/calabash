@@ -339,6 +339,50 @@ func TestEval(t *testing.T) {
 				},
 			},
 			{
+				name: "spread expressions copy contents",
+				text: "let a = [true, false]; [a...]",
+				validate: func(v interface{}, is interpreter.IntpState) error {
+					tpl := value.NewTuple([]value.Value{value.NewBoolean(true), value.NewBoolean(false)})
+
+					if !reflect.DeepEqual(v, tpl) {
+						return errors.New("Contents of tuple should be `true`, `false`")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "spread expressions concat with existing content",
+				text: "let a = [true, false]; [1, a..., 2]",
+				validate: func(v interface{}, is interpreter.IntpState) error {
+					tpl := value.NewTuple(
+						[]value.Value{
+							value.NewNumber(1),
+							value.NewBoolean(true),
+							value.NewBoolean(false),
+							value.NewNumber(2),
+						},
+					)
+
+					if !reflect.DeepEqual(v, tpl) {
+						return errors.New("Contents of tuple should be `1`, `true`, `false`, `2`")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "function calls can be spreadable",
+				text: "let a = fn () -> [1]; [a()...]",
+				validate: func(v interface{}, is interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewTuple([]value.Value{value.NewNumber(1)})) {
+						return errors.New("Result of function call did not spread properly")
+					}
+
+					return nil
+				},
+			},
+			{
 				name: "binary addition 1",
 				text: "1 + 1",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
@@ -870,6 +914,77 @@ func TestEval(t *testing.T) {
 				},
 			},
 			{
+				name: "functions can have tuples spread into them",
+				text: "let a, b = fn (a, b) -> a + b, [1, 2]; a(b...)",
+				validate: func(v interface{}, is interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewNumber(3)) {
+						return errors.New("Tuple was not properly spread into function call")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "functions can be partially applied with spreading",
+				text: "let a = fn (a, b, c) -> bottom; a([1,2]...)",
+				validate: func(v interface{}, is interpreter.IntpState) error {
+					f, ok := v.(*value.Function)
+
+					if !ok {
+						return errors.New("Did not receive a function")
+					}
+
+					if f.Arity() != 1 {
+						return errors.New("Function was not partially applied")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "function calls can be over-applied with spreading",
+				text: "let a, b = fn (a) -> a + 1, [1,2,3]; a(b...)",
+				validate: func(v interface{}, is interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewNumber(2)) {
+						return errors.New("Over-applied function did not call correctly")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "spread values can be combined with rest params",
+				text: "let a, b = fn(a, ...b) -> b, [1,2,3]; a(b...)",
+				validate: func(v interface{}, is interpreter.IntpState) error {
+					tpl := value.NewTuple([]value.Value{value.NewNumber(2), value.NewNumber(3)})
+					if !reflect.DeepEqual(v, tpl) {
+						return errors.New("Spread argument did not get combined into rest param")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "spread can be combined with other arguments",
+				text: "let a, b = fn(a, b, ...c) -> c, [1,2,3,4]; a(true, b..., false)",
+				validate: func(v interface{}, is interpreter.IntpState) error {
+					tpl := value.NewTuple(
+						[]value.Value{
+							value.NewNumber(2),
+							value.NewNumber(3),
+							value.NewNumber(4),
+							value.NewBoolean(false),
+						},
+					)
+
+					if !reflect.DeepEqual(v, tpl) {
+						return errors.New("Arguments were not shuffled around properly")
+					}
+
+					return nil
+				},
+			},
+			{
 				name: "proto expression",
 				text: "proto { 'a' -> fn() -> 1 + 1 }",
 				validate: func(v interface{}, is interpreter.IntpState) error {
@@ -1395,6 +1510,26 @@ func TestEval(t *testing.T) {
 			{
 				name: "getting record property that doesn't exist",
 				text: "{ 'a' -> 1 }->'get'(1)",
+			},
+			{
+				name: "numbers are not spreadable",
+				text: "[(1)...]",
+			},
+			{
+				name: "strings are not spreadable",
+				text: "['1'...]",
+			},
+			{
+				name: "booleans are not spreadable",
+				text: "[true...]",
+			},
+			{
+				name: "records are not spreadable",
+				text: "[{1->1}...]",
+			},
+			{
+				name: "functions are not spreadable",
+				text: "[(fn() {})...]",
 			},
 		}
 

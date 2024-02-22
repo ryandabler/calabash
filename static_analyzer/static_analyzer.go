@@ -18,6 +18,8 @@ const (
 	proto_method
 	pipe
 	while
+	tuple
+	call
 )
 
 const (
@@ -109,6 +111,9 @@ func (a *analyzer) VisitBooleanLitExpr(e ast.BooleanLiteralExpr) (interface{}, e
 }
 
 func (a *analyzer) VisitTupleLitExpr(e ast.TupleLiteralExpr) (interface{}, error) {
+	a.loc.Push(tuple)
+	defer a.loc.Pop()
+
 	for _, e := range e.Contents {
 		err := a.analyzeNode(e)
 
@@ -136,6 +141,20 @@ func (a *analyzer) VisitRecordLitExpr(e ast.RecordLiteralExpr) (interface{}, err
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	return nil, nil
+}
+
+func (a *analyzer) VisitSpreadExpr(e ast.SpreadExpr) (interface{}, error) {
+	if a.loc.Size() == 0 || (a.loc.Peek() != tuple && a.loc.Peek() != call) {
+		return nil, errors.StaticError{Msg: "Spread expressions can only appear immediately inside tuple literals or call expressions"}
+	}
+
+	err := a.analyzeNode(e.Expr)
+
+	if err != nil {
+		return nil, err
 	}
 
 	return nil, nil
@@ -181,6 +200,9 @@ func (a *analyzer) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	a.loc.Push(call)
+	defer a.loc.Pop()
 
 	for _, arg := range e.Arguments {
 		err = a.analyzeNode(arg)

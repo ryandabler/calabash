@@ -102,6 +102,18 @@ func (e TupleLiteralExpr) n() nodetype {
 	return nt
 }
 
+type SpreadExpr struct {
+	Expr Expr
+}
+
+func (e SpreadExpr) e() nodetype {
+	return nt
+}
+
+func (e SpreadExpr) n() nodetype {
+	return nt
+}
+
 type IdentifierExpr struct {
 	Name tokens.Token
 }

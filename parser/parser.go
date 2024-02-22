@@ -611,7 +611,21 @@ func (p *parser) unary() (ast.Expr, error) {
 		return ast.UnaryExpr{Operator: op, Expr: expr}, nil
 	}
 
-	return p.callOrGet()
+	return p.spread()
+}
+
+func (p *parser) spread() (ast.Expr, error) {
+	e, err := p.callOrGet()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if p.isThenEat(tokentype.DOT_DOT_DOT) {
+		return ast.SpreadExpr{Expr: e}, nil
+	}
+
+	return e, nil
 }
 
 func (p *parser) callOrGet() (ast.Expr, error) {

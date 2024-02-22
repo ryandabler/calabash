@@ -4,7 +4,6 @@ import (
 	"calabash/ast"
 	"calabash/errors"
 	"calabash/internal/environment"
-	"calabash/internal/slice"
 	"calabash/internal/tokentype"
 	"calabash/internal/value"
 	"calabash/internal/visitor"
@@ -271,25 +270,50 @@ func (i *interpreter) VisitBooleanLitExpr(e ast.BooleanLiteralExpr) (interface{}
 }
 
 func (i *interpreter) VisitTupleLitExpr(e ast.TupleLiteralExpr) (interface{}, error) {
-	vs := make([]value.Value, len(e.Contents))
+	vs := make([]value.Value, 0, len(e.Contents))
+	spreadable := false
 
-	for idx, c := range e.Contents {
+	for _, c := range e.Contents {
+		_, spreadable = c.(ast.SpreadExpr)
+
 		ifc, err := i.evalNode(c)
 
 		if err != nil {
 			return nil, err
 		}
 
+		if spreadable {
+			tpl := ifc.(*value.Tuple)
+			vs = append(vs, tpl.Items...)
+			continue
+		}
+
 		v, ok := ifc.(value.Value)
 
 		if !ok {
-			return nil, errs.New("Did not have a value when building tuple literal's contents")
+			return nil, errs.New("did not have a value when building tuple literal's contents")
 		}
 
-		vs[idx] = v
+		vs = append(vs, v)
 	}
 
 	return value.NewTuple(vs), nil
+}
+
+func (i *interpreter) VisitSpreadExpr(e ast.SpreadExpr) (interface{}, error) {
+	exp, err := i.evalNode(e.Expr)
+
+	if err != nil {
+		return nil, err
+	}
+
+	tpl, ok := exp.(*value.Tuple)
+
+	if !ok {
+		return nil, errors.RuntimeError{Msg: "Only tuple values can be spread"}
+	}
+
+	return tpl, nil
 }
 
 func (i *interpreter) VisitIdentifierExpr(e ast.IdentifierExpr) (interface{}, error) {
@@ -320,11 +344,21 @@ func (i *interpreter) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 		return nil, errors.RuntimeError{Msg: "Attempting to call a non-functional value."}
 	}
 
-	vals, err := slice.Map(e.Arguments, func(e ast.Expr) (value.Value, error) {
-		v, err := i.evalNode(e)
+	vals := make([]value.Value, 0, len(e.Arguments))
+	spreadable := false
+	for _, a := range e.Arguments {
+		_, spreadable = a.(ast.SpreadExpr)
+
+		v, err := i.evalNode(a)
 
 		if err != nil {
 			return nil, err
+		}
+
+		if spreadable {
+			v := v.(*value.Tuple)
+			vals = append(vals, v.Items...)
+			continue
 		}
 
 		val, ok := v.(value.Value)
@@ -333,11 +367,7 @@ func (i *interpreter) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 			return nil, errors.RuntimeError{Msg: "Argument " + fmt.Sprint(1) + " is not a value"}
 		}
 
-		return val, nil
-	})
-
-	if err != nil {
-		return nil, err
+		vals = append(vals, val)
 	}
 
 	// Check if function is being partially applied and return a new function if so

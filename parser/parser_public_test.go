@@ -306,6 +306,13 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 		return true
 	}
 
+	tA20, okA := a.(ast.SpreadExpr)
+	tB20, okB := b.(ast.SpreadExpr)
+
+	if okA && okB {
+		return nodesAreEqual(tA20.Expr, tB20.Expr)
+	}
+
 	return false
 }
 
@@ -491,6 +498,21 @@ func TestParse(t *testing.T) {
 							},
 							ast.IdentifierExpr{Name: tokens.New(tokentype.IDENTIFIER, "a", 0, 0)},
 							ast.StringLiteralExpr{Value: tokens.New(tokentype.STRING, "'a'", 0, 0)},
+						},
+					},
+				},
+			},
+			{
+				name: "spread expression",
+				text: "[1, 2, 3]...",
+				expected: []ast.Node{
+					ast.SpreadExpr{
+						Expr: ast.TupleLiteralExpr{
+							Contents: []ast.Expr{
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)},
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "2", 0, 0)},
+								ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "3", 0, 0)},
+							},
 						},
 					},
 				},

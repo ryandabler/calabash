@@ -107,7 +107,11 @@ EXPONENTIATION
 
 UNARY
     : '-' UNARY
-    | CALL_OR_GET
+    | SPREAD
+    ;
+
+SPREAD
+    : CALL_OR_GET ['.' '.' '.']?
     ;
 
 CALL_OR_GET

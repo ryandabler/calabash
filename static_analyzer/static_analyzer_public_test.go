@@ -114,6 +114,14 @@ func TestAnalyze(t *testing.T) {
 				text: "1 |> (2 |> ?) + ?",
 			},
 			{
+				name: "spread expression in tuple literal",
+				text: "[1, 2, [true,false,bottom]...]",
+			},
+			{
+				name: "spread expression in function call",
+				text: "fn(a, b, c) {}([1,2,3]...)",
+			},
+			{
 				name: "assignment statement",
 				text: "let mut a; a = 1;",
 			},
@@ -320,6 +328,14 @@ func TestAnalyze(t *testing.T) {
 			{
 				name: "tuple expression containing undeclared variables",
 				text: "[1, a]",
+			},
+			{
+				name: "top-level spread expression",
+				text: "let a = [1]; a...",
+			},
+			{
+				name: "spread expression in blocks",
+				text: "if true { [1,2,3]... }",
 			},
 			{
 				name: "while statement with unresolved condition variable",
