@@ -19,6 +19,13 @@ func (v *Boolean) Proto() *Proto {
 	return v.proto
 }
 
+func (v *Boolean) Inherit(p *Proto) Value {
+	b := NewBoolean(v.Value)
+	b.proto = p
+
+	return b
+}
+
 func NewBoolean(v bool) *Boolean {
 	return &Boolean{
 		Value: v,

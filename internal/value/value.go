@@ -14,12 +14,16 @@ type Evaluator interface {
 	Dump() struct {
 		Env *environment.Environment[Value]
 	}
+	PushEnv(*environment.Environment[Value])
+	PopEnv()
+	AddEnv(k string, v Value)
 }
 
 type Value interface {
 	v() vtype
 	Hash() string
 	Proto() *Proto
+	Inherit(*Proto) Value
 }
 
 type Caller interface {

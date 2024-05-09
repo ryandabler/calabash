@@ -32,6 +32,10 @@ func (v *Function) Proto() *Proto {
 	return nil
 }
 
+func (v *Function) Inherit(_ *Proto) Value {
+	return v
+}
+
 func (v *Function) Apply(vs []Value) Caller {
 	return &Function{
 		ParamList: v.ParamList,

@@ -205,6 +205,22 @@ func (i *interpreter) VisitBinaryExpr(e ast.BinaryExpr) (interface{}, error) {
 		return val, nil
 	}
 
+	if op == tokentype.LESS {
+		rp, ok := r.(*value.Proto)
+
+		if !ok {
+			return nil, errors.RuntimeError{Msg: "Non-numeric `<` requires RHS to be a prototype"}
+		}
+
+		lv, ok := l.(value.Value)
+
+		if !ok {
+			return nil, errors.RuntimeError{Msg: "Did not receive a value"}
+		}
+
+		return lv.Inherit(rp), nil
+	}
+
 	if isNumericOp(op) {
 		return nil, errors.RuntimeError{Msg: fmt.Sprintf("Received a non-numeric value for numeric binary operator %q", e.Operator.Lexeme)}
 	}
@@ -443,16 +459,18 @@ func (i *interpreter) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 			return nil, err
 		}
 
-		vv, ok := v.(value.Caller)
+		vf, ok := v.(*value.Function)
 
 		if !ok {
 			return nil, errors.RuntimeError{Msg: "Proto function could not be converted to a function"}
 		}
 
+		pm := value.ProtoMethodFromFn(vf)
+
 		kstr := kv.Hash()
 
 		ks[idx] = kstr
-		vs[kstr] = vv
+		vs[kstr] = pm
 	}
 
 	return &value.Proto{Keys: ks, Methods: vs}, nil
@@ -738,4 +756,8 @@ func (i *interpreter) PushEnv(e *environment.Environment[value.Value]) {
 
 func (i *interpreter) PopEnv() {
 	i.env = i.env.Parent
+}
+
+func (i *interpreter) AddEnv(k string, v value.Value) {
+	i.env.Add(k, v)
 }

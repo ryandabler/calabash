@@ -22,6 +22,10 @@ func (pm *ProtoMethod) Proto() *Proto {
 	return nil
 }
 
+func (v *ProtoMethod) Inherit(_ *Proto) Value {
+	return v
+}
+
 func (pm *ProtoMethod) Apply(vs []Value) Caller {
 	return &ProtoMethod{
 		ParamList: pm.ParamList,
@@ -77,6 +81,23 @@ func (pm *ProtoMethod) Hash() string {
 	}
 
 	return pm.hash
+}
+
+func ProtoMethodFromFn(fn *Function) *ProtoMethod {
+	return &ProtoMethod{
+		Me:        nil,
+		ParamList: fn.ParamList,
+		Apps:      fn.Apps,
+		call: func(me Value, e Evaluator) (interface{}, error) {
+			e.PushEnv(nil)
+			defer e.PopEnv()
+
+			e.AddEnv("me", me)
+
+			return fn.Call(e)
+		},
+		hash: fn.hash,
+	}
 }
 
 // Compile time check

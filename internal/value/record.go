@@ -30,6 +30,23 @@ func (v *Record) Proto() *Proto {
 	return v.proto
 }
 
+func (v *Record) Inherit(p *Proto) Value {
+	es, _ := slice.Map(v.keys, func(k Value) (struct {
+		K Value
+		V Value
+	}, error) {
+		return struct {
+			K Value
+			V Value
+		}{K: k, V: v.Entries[k.Hash()]}, nil
+	})
+
+	r := NewRecord(es)
+	r.proto = p
+
+	return r
+}
+
 func NewRecord(vs []struct {
 	K Value
 	V Value

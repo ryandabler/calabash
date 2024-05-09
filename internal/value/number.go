@@ -19,6 +19,13 @@ func (v *Number) Proto() *Proto {
 	return v.proto
 }
 
+func (v *Number) Inherit(p *Proto) Value {
+	n := NewNumber(v.Value)
+	n.proto = p
+
+	return n
+}
+
 func NewNumber(v float64) *Number {
 	return &Number{
 		Value: v,

@@ -26,5 +26,9 @@ func (v *Proto) Proto() *Proto {
 	return nil
 }
 
+func (v *Proto) Inherit(_ *Proto) Value {
+	return v
+}
+
 // Compile time checks
 var _ Value = (*Proto)(nil)

@@ -29,6 +29,13 @@ func (v *Tuple) Proto() *Proto {
 	return v.proto
 }
 
+func (v *Tuple) Inherit(p *Proto) Value {
+	t := NewTuple(v.Items)
+	t.proto = p
+
+	return t
+}
+
 func NewTuple(vs []Value) *Tuple {
 	return &Tuple{
 		Items: vs,

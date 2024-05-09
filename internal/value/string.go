@@ -19,6 +19,13 @@ func (v *String) Proto() *Proto {
 	return v.proto
 }
 
+func (v *String) Inherit(p *Proto) Value {
+	s := NewString(v.Value)
+	s.proto = p
+
+	return s
+}
+
 func NewString(v string) *String {
 	return &String{
 		Value: v,

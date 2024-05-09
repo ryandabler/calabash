@@ -1189,6 +1189,48 @@ func TestEval(t *testing.T) {
 				},
 			},
 			{
+				name: "values can have their prototype reassigned",
+				text: "let p, v = proto { 'inc' -> fn () -> me + 1 }, 3 < p; v->'inc'()",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewNumber(4)) {
+						return errors.New("value `p` did not increment correctly")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "values reassigning prototypes do not change that of original value",
+				text: "let p, a, b = proto { 'inc' -> fn () -> me + 1 }, 3, a < p; a",
+				validate: func(v interface{}, is interpreter.IntpState) error {
+					val, ok := v.(*value.Number)
+
+					if !ok {
+						return errors.New("Value should have been a number")
+					}
+
+					p := val.Proto().Hash()
+					numberP := value.ProtoNumber.Hash()
+
+					if p != numberP {
+						return errors.New("Number had its proto erroneously re-assigned")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "values with reassigned prototypes do not impact original value",
+				text: "let p, a, b, c = proto { 'inc' -> fn () -> me + 1 }, 3, a < p, b->'inc'(); a",
+				validate: func(v interface{}, is interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewNumber(3)) {
+						return errors.New("value `c` should not have incremented `a`")
+					}
+
+					return nil
+				},
+			},
+			{
 				name: "assign statement 1",
 				text: "let mut a; a = 4;",
 				validate: func(_ interface{}, i interpreter.IntpState) error {
@@ -1203,11 +1245,11 @@ func TestEval(t *testing.T) {
 			// 	name: "assign statement 2",
 			// 	text: "let mut a, mut b = 1, 2; a, b = b, a;",
 			// 	validate: func(_ interface{}, i interpreter.IntpState) error {
-			// 		if i.Env.Get("a") != (value.VNumber{Value: 2}) {
+			// 		if !reflect.DeepEqual(i.Env.Get("a"), value.NewNumber(2)) {
 			// 			return errors.New("Variable \"a\" was not properly assigned \"b\"'s value 2")
 			// 		}
 
-			// 		if i.Env.Get("b") != (value.VNumber{Value: 1}) {
+			// 		if !reflect.DeepEqual(i.Env.Get("b"), value.NewNumber(1)) {
 			// 			return errors.New("Variable \"b\" was not properly assigned \"a\"'s value 1")
 			// 		}
 
