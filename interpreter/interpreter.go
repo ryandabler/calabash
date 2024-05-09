@@ -99,10 +99,8 @@ func (i *interpreter) evalPipe(l interface{}, r ast.Expr) (interface{}, error) {
 		return nil, errors.RuntimeError{Msg: "Left hand side of pipe is not a value"}
 	}
 
-	e := environment.New(i.env)
-	i.env = e
-
-	defer func() { i.env = i.env.Parent }()
+	i.PushEnv(nil)
+	defer i.PopEnv()
 
 	i.env.Add("?", lv)
 
@@ -403,14 +401,13 @@ func (i *interpreter) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 	// own environment
 	env := i.env
 	i.env = fBodyEnv
+	defer func() { i.env = env }()
 
 	v, err := vfunc.Call(i)
 
 	if err != nil {
 		return nil, err
 	}
-
-	i.env = env
 
 	return v, nil
 }
@@ -599,10 +596,8 @@ func (i *interpreter) VisitAssignStmt(s ast.AssignmentStmt) (interface{}, error)
 }
 
 func (i *interpreter) VisitIfStmt(s ast.IfStmt) (interface{}, error) {
-	e := environment.New(i.env)
-	i.env = e
-
-	defer func() { i.env = i.env.Parent }()
+	i.PushEnv(nil)
+	defer i.PopEnv()
 
 	_, err := i.VisitVarDeclStmt(s.Decls)
 
@@ -646,10 +641,8 @@ func (i *interpreter) VisitIfStmt(s ast.IfStmt) (interface{}, error) {
 }
 
 func (i *interpreter) VisitBlock(s ast.Block) (interface{}, error) {
-	e := environment.New(i.env)
-	i.env = e
-
-	defer func() { i.env = i.env.Parent }()
+	i.PushEnv(nil)
+	defer i.PopEnv()
 
 	for _, n := range s.Contents {
 		_, err := i.evalNode(n)
@@ -673,10 +666,8 @@ func (i *interpreter) VisitRetStmt(s ast.ReturnStmt) (interface{}, error) {
 }
 
 func (i *interpreter) VisitWhileStmt(s ast.WhileStmt) (interface{}, error) {
-	e := environment.New(i.env)
-	i.env = e
-
-	defer func() { i.env = i.env.Parent }()
+	i.PushEnv(nil)
+	defer i.PopEnv()
 
 	_, err := i.VisitVarDeclStmt(s.Decls)
 
@@ -734,4 +725,17 @@ type IntpState = struct {
 
 func (i *interpreter) Dump() IntpState {
 	return IntpState{Env: i.env}
+}
+
+func (i *interpreter) PushEnv(e *environment.Environment[value.Value]) {
+	if e == nil {
+		e = i.env
+	}
+
+	env := environment.New(e)
+	i.env = env
+}
+
+func (i *interpreter) PopEnv() {
+	i.env = i.env.Parent
 }
