@@ -198,11 +198,7 @@ func nodesAreEqual(a ast.Node, b ast.Node) bool {
 			}
 		}
 
-		if !nodesAreEqual(tA14.Callee, tB14.Callee) {
-			return false
-		}
-
-		return true
+		return nodesAreEqual(tA14.Callee, tB14.Callee)
 	}
 
 	tA15, okA := a.(ast.TupleLiteralExpr)
