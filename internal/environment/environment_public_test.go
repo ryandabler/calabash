@@ -2,6 +2,7 @@ package environment_test
 
 import (
 	"calabash/internal/environment"
+	"reflect"
 	"testing"
 )
 
@@ -239,6 +240,141 @@ func TestHasDirectly(t *testing.T) {
 
 		if !ok {
 			t.Error("should find variable `a`")
+		}
+	})
+}
+
+func TestSlice(t *testing.T) {
+	t.Run("should receive nil value if slicing 0", func(t *testing.T) {
+		env := &environment.Environment[int]{
+			Fields: map[string]int{
+				"a": 10,
+			},
+			Parent: &environment.Environment[int]{
+				Fields: map[string]int{
+					"b": 10,
+				},
+				Parent: &environment.Environment[int]{
+					Fields: map[string]int{
+						"c": 10,
+					},
+					Parent: nil,
+				},
+			},
+		}
+
+		newEnv := environment.Slice(env, 0)
+
+		if newEnv != nil {
+			t.Error("did not receive nil value for slicing 0 layers")
+		}
+	})
+
+	t.Run("should add one level for value 1", func(t *testing.T) {
+		env := &environment.Environment[int]{
+			Fields: map[string]int{
+				"a": 10,
+			},
+			Parent: &environment.Environment[int]{
+				Fields: map[string]int{
+					"b": 10,
+				},
+				Parent: &environment.Environment[int]{
+					Fields: map[string]int{
+						"c": 10,
+					},
+					Parent: nil,
+				},
+			},
+		}
+
+		newEnv := environment.Slice(env, 1)
+
+		if !reflect.DeepEqual(newEnv, &environment.Environment[int]{Fields: map[string]int{"a": 10}, Parent: nil}) {
+			t.Error("First layer of sliced environment should have nil parent")
+		}
+
+		if env == newEnv {
+			t.Error("Environments should be different pointers")
+		}
+	})
+
+	t.Run("should add two level for value 2", func(t *testing.T) {
+		env := &environment.Environment[int]{
+			Fields: map[string]int{
+				"a": 10,
+			},
+			Parent: &environment.Environment[int]{
+				Fields: map[string]int{
+					"b": 10,
+				},
+				Parent: &environment.Environment[int]{
+					Fields: map[string]int{
+						"c": 10,
+					},
+					Parent: nil,
+				},
+			},
+		}
+
+		newEnv := environment.Slice(env, 2)
+
+		if !reflect.DeepEqual(newEnv, &environment.Environment[int]{Fields: map[string]int{"a": 10}, Parent: &environment.Environment[int]{Fields: map[string]int{"b": 10}, Parent: nil}}) {
+			t.Error("First layer of sliced environment should have nil parent")
+		}
+	})
+
+	t.Run("should add all levels when value is greater than depth", func(t *testing.T) {
+		env := &environment.Environment[int]{
+			Fields: map[string]int{
+				"a": 10,
+			},
+			Parent: &environment.Environment[int]{
+				Fields: map[string]int{
+					"b": 10,
+				},
+				Parent: &environment.Environment[int]{
+					Fields: map[string]int{
+						"c": 10,
+					},
+					Parent: nil,
+				},
+			},
+		}
+
+		newEnv := environment.Slice(env, 5)
+
+		if !reflect.DeepEqual(newEnv, env) {
+			t.Error("First layer of sliced environment should have nil parent")
+		}
+
+		if newEnv == env {
+			t.Error("Environments should be different pointers")
+		}
+	})
+
+	t.Run("variables beyond slice depth are unreachable", func(t *testing.T) {
+		env := &environment.Environment[int]{
+			Fields: map[string]int{
+				"a": 10,
+			},
+			Parent: &environment.Environment[int]{
+				Fields: map[string]int{
+					"b": 10,
+				},
+				Parent: &environment.Environment[int]{
+					Fields: map[string]int{
+						"c": 10,
+					},
+					Parent: nil,
+				},
+			},
+		}
+
+		newEnv := environment.Slice(env, 2)
+
+		if newEnv.Has("c") {
+			t.Error("should not be able to find `c` in sliced environment")
 		}
 	})
 }
