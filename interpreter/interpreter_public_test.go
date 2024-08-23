@@ -431,7 +431,7 @@ func TestEval(t *testing.T) {
 				text: "5 / 3",
 				validate: func(v interface{}, _ interpreter.IntpState) error {
 					if !reflect.DeepEqual(v, value.NewNumber(5.0/3.0)) {
-						return errors.New(fmt.Sprintf("Values does not equal %f", 5.0/3.0))
+						return fmt.Errorf("Values does not equal %f", 5.0/3.0)
 					}
 
 					return nil

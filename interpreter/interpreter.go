@@ -47,7 +47,7 @@ func (i *interpreter) evalBooleanAnd(l interface{}, r ast.Expr) (interface{}, er
 		return nil, errors.RuntimeError{Msg: "Left side of and expression is not a boolean"}
 	}
 
-	if lb.Value == false {
+	if !lb.Value {
 		return value.NewBoolean(false), nil
 	}
 
@@ -73,7 +73,7 @@ func (i *interpreter) evalBooleanOr(l interface{}, r ast.Expr) (interface{}, err
 		return nil, errors.RuntimeError{Msg: "Left side of or expression is not a boolean"}
 	}
 
-	if lb.Value == true {
+	if lb.Value {
 		return value.NewBoolean(true), nil
 	}
 
