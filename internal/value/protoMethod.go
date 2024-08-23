@@ -7,11 +7,12 @@ import (
 )
 
 type ProtoMethod struct {
-	ParamList []ast.Identifier
-	Apps      []Value
-	Me        Value
-	hash      string
-	call      func(me Value, e Evaluator) (interface{}, error)
+	ParamList   []ast.Identifier
+	Apps        []Value
+	Me          Value
+	hash        string
+	call        func(me Value, e Evaluator) (interface{}, error)
+	Inheritable *Proto
 }
 
 func (pm *ProtoMethod) v() vtype {
@@ -41,11 +42,12 @@ func (pm *ProtoMethod) Bind(me Value) Caller {
 	}
 
 	return &ProtoMethod{
-		Me:        me,
-		ParamList: pm.ParamList,
-		Apps:      pm.Apps,
-		call:      pm.call,
-		hash:      pm.hash,
+		Me:          me,
+		ParamList:   pm.ParamList,
+		Apps:        pm.Apps,
+		call:        pm.call,
+		hash:        pm.hash,
+		Inheritable: pm.Inheritable,
 	}
 }
 

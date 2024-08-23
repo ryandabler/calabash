@@ -1231,6 +1231,29 @@ func TestEval(t *testing.T) {
 				},
 			},
 			{
+				name: "prototype methods can autoinherit",
+				text: "let p, a = proto { 'inc' ->< fn () -> me + 1 }, 3 < p; a->'inc'()->'inc'()",
+				validate: func(v interface{}, is interpreter.IntpState) error {
+					vn, ok := v.(*value.Number)
+
+					if !ok {
+						return errors.New("value `a` is not fundamentally a number")
+					}
+
+					if vn.Value != 5 {
+						return errors.New("value `a` is not wrapping the value `5`")
+					}
+
+					n := value.NewNumber(5)
+
+					if vn.Proto() == n.Proto() {
+						return errors.New("value `a` should have a different prototype than NumberProto")
+					}
+
+					return nil
+				},
+			},
+			{
 				name: "assign statement 1",
 				text: "let mut a; a = 4;",
 				validate: func(_ interface{}, i interpreter.IntpState) error {

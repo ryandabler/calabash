@@ -425,6 +425,11 @@ func (i *interpreter) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 		return nil, err
 	}
 
+	if pm, ok := callee.(*value.ProtoMethod); ok && pm.Inheritable != nil {
+		vl := v.(value.Value)
+		v = vl.Inherit(pm.Inheritable)
+	}
+
 	return v, nil
 }
 
@@ -439,6 +444,7 @@ func (i *interpreter) VisitMeExpr(e ast.MeExpr) (interface{}, error) {
 func (i *interpreter) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 	ks := make([]string, len(e.MethodSet))
 	vs := map[string]value.Caller{}
+	p := &value.Proto{Keys: ks, Methods: vs}
 
 	for idx, m := range e.MethodSet {
 		k, err := i.evalNode(m.K)
@@ -466,6 +472,10 @@ func (i *interpreter) VisitProtoExpr(e ast.ProtoExpr) (interface{}, error) {
 		}
 
 		pm := value.ProtoMethodFromFn(vf)
+
+		if m.I {
+			pm.Inheritable = p
+		}
 
 		kstr := kv.Hash()
 

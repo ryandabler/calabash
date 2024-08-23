@@ -161,6 +161,8 @@ func (p *parser) protoMethod() (ast.ProtoMethod, error) {
 		return ast.ProtoMethod{}, err
 	}
 
+	inherits := p.isThenEat(tokentype.LESS)
+
 	_, err = p.eat(tokentype.FN)
 
 	if err != nil {
@@ -173,7 +175,7 @@ func (p *parser) protoMethod() (ast.ProtoMethod, error) {
 		return ast.ProtoMethod{}, err
 	}
 
-	return ast.ProtoMethod{K: k, M: m}, nil
+	return ast.ProtoMethod{K: k, M: m, I: inherits}, nil
 }
 
 type KeyVal = struct {

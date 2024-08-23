@@ -1,6 +1,7 @@
 package ast
 
 type ProtoMethod struct {
-	K Expr
-	M Expr
+	K Expr // Method name
+	M Expr // Method
+	I bool // Auto-inherits
 }

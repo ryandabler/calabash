@@ -565,6 +565,25 @@ func TestParse(t *testing.T) {
 				},
 			},
 			{
+				name: "proto 3",
+				text: "proto { 4 ->< fn () -> 1 }",
+				expected: []ast.Node{
+					ast.ProtoExpr{
+						MethodSet: []ast.ProtoMethod{
+							{
+								K: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "4", 0, 0)},
+								M: ast.FuncExpr{Body: ast.Block{
+									Contents: []ast.Node{
+										ast.ReturnStmt{Expr: ast.NumericLiteralExpr{Value: tokens.New(tokentype.NUMBER, "1", 0, 0)}},
+									},
+								}},
+								I: true,
+							},
+						},
+					},
+				},
+			},
+			{
 				name: "fundamental record 1",
 				text: "{}",
 				expected: []ast.Node{
