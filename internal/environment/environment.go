@@ -22,12 +22,14 @@ func (e *Environment[T]) Get(k string) T {
 func (e *Environment[T]) Set(k string, v T) {
 	_, ok := e.Fields[k]
 
-	if !ok {
-		e.Parent.Set(k, v)
+	if ok {
+		e.Fields[k] = v
 		return
 	}
 
-	e.Fields[k] = v
+	if e.Parent != nil {
+		e.Parent.Set(k, v)
+	}
 }
 
 func (e *Environment[T]) Has(k string) bool {
