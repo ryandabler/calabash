@@ -338,6 +338,7 @@ func (i *interpreter) VisitFuncExpr(e ast.FuncExpr) (interface{}, error) {
 	fn := &value.Function{
 		Body:      e.Body,
 		ParamList: e.Params,
+		Depth:     e.Depth,
 	}
 
 	return fn, nil
@@ -390,7 +391,8 @@ func (i *interpreter) VisitCallExpr(e ast.CallExpr) (interface{}, error) {
 	}
 
 	// Begin function call routines
-	fBodyEnv := environment.New[value.Value](nil)
+	closure := vfunc.Closure(i.env)
+	fBodyEnv := environment.New[value.Value](closure)
 	args := append(vfunc.Args(), vals...)
 
 	// Combine "rest" args into a tuple

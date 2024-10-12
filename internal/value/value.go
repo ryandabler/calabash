@@ -34,4 +34,5 @@ type Caller interface {
 	Call(Evaluator) (interface{}, error)
 	Hash() string
 	Rest() bool
+	Closure(*environment.Environment[Value]) *environment.Environment[Value]
 }

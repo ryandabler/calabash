@@ -177,6 +177,22 @@ func TestAnalyze(t *testing.T) {
 				name: "return statement in proto methods",
 				text: "proto { 'a' -> fn() { return 2; } }",
 			},
+			{
+				name: "referencing variable declared in full closure",
+				text: "let a, b = 3, fn<> () -> a;",
+			},
+			{
+				name: "referencing variable declared in limited closure 1",
+				text: "let a = fn<1> () -> a;",
+			},
+			{
+				name: "referencing variable declared in limited closure 2 (note if blocks have 2 layers)",
+				text: "let a = 3; if true { let b = fn<3> () -> a; }",
+			},
+			{
+				name: "proto methods can be closure",
+				text: "let a = 1; let p = proto { 'abc' -> fn<> () -> a };",
+			},
 		}
 
 		for _, e := range table {
@@ -376,6 +392,18 @@ func TestAnalyze(t *testing.T) {
 			{
 				name: "break statement not directly in a loop",
 				text: "while true { fn () { break; } }",
+			},
+			{
+				name: "closures with non-integer limits",
+				text: "fn<1.2> () {}",
+			},
+			{
+				name: "limited closures referencing variables outside their scope",
+				text: "let a = 3; if true { let b = fn<2> () -> a; }",
+			},
+			{
+				name: "full closures referencing variables not defined",
+				text: "let a = 3; if true { let b = fn<> () -> c; }",
 			},
 		}
 

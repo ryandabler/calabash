@@ -2,13 +2,20 @@ package value
 
 import (
 	"calabash/ast"
+	"calabash/internal/environment"
 	"calabash/internal/slice"
 	"calabash/internal/uuid"
+	"calabash/lexer/tokens"
+	"strconv"
 )
 
 type ProtoMethod struct {
-	ParamList   []ast.Identifier
-	Apps        []Value
+	ParamList []ast.Identifier
+	Apps      []Value
+	Depth     struct {
+		Specified bool
+		Tk        *tokens.Token
+	}
 	Me          Value
 	hash        string
 	call        func(me Value, e Evaluator) (interface{}, error)
@@ -44,6 +51,7 @@ func (pm *ProtoMethod) Bind(me Value) Caller {
 	return &ProtoMethod{
 		Me:          me,
 		ParamList:   pm.ParamList,
+		Depth:       pm.Depth,
 		Apps:        pm.Apps,
 		call:        pm.call,
 		hash:        pm.hash,
@@ -85,10 +93,30 @@ func (pm *ProtoMethod) Hash() string {
 	return pm.hash
 }
 
+// TODO: DRY up with Function#Closure()
+func (pm *ProtoMethod) Closure(env *environment.Environment[Value]) *environment.Environment[Value] {
+	// Case for `fn () ...` declarations: no closure
+	if !pm.Depth.Specified {
+		return nil
+	}
+
+	// Case for `fn<> () ...` declaractions; full exposure
+	if pm.Depth.Tk == nil {
+		return env
+	}
+
+	// Case for `fn<#> () ...` declarations; limited exposure
+	lex := pm.Depth.Tk.Lexeme
+	d, _ := strconv.ParseUint(lex, 10, 64) // ignore error since static analyzer will catch these
+
+	return environment.Slice(env, d)
+}
+
 func ProtoMethodFromFn(fn *Function) *ProtoMethod {
 	return &ProtoMethod{
 		Me:        nil,
 		ParamList: fn.ParamList,
+		Depth:     fn.Depth,
 		Apps:      fn.Apps,
 		call: func(me Value, e Evaluator) (interface{}, error) {
 			e.PushEnv(nil)

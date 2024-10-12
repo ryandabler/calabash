@@ -7,6 +7,7 @@ import (
 	"calabash/internal/stack"
 	"calabash/internal/visitor"
 	"fmt"
+	"strconv"
 )
 
 type staticloc int
@@ -172,7 +173,24 @@ func (a *analyzer) VisitFuncExpr(e ast.FuncExpr) (interface{}, error) {
 	// By default, functions are not closures so they only have access to their
 	// own environment
 	env := a.env
-	a.env = environment.New[identRecord](nil)
+
+	if !e.Depth.Specified {
+		// Case for `fn () ...` declarations: no closure
+		a.env = environment.New[identRecord](nil)
+	} else if e.Depth.Tk == nil {
+		// Case for `fn<> () ...` declaractions; full exposure
+		a.env = env
+	} else {
+		// Case for `fn<#> () ...` declarations; limited exposure
+		lex := e.Depth.Tk.Lexeme
+		d, err := strconv.ParseUint(lex, 10, 64)
+
+		if err != nil {
+			return nil, errors.StaticError{Msg: "Could not convert closure depth to unsigned integer"}
+		}
+
+		a.env = environment.Slice(env, d)
+	}
 
 	for _, n := range e.Params {
 		a.env.Add(n.Name.Lexeme, identRecord{mut: n.Mut})
@@ -365,8 +383,7 @@ func (a *analyzer) VisitIfStmt(s ast.IfStmt) (interface{}, error) {
 }
 
 func (a *analyzer) VisitBlock(s ast.Block) (interface{}, error) {
-	e := environment.New(a.env)
-	a.env = e
+	a.newScope()
 
 	for _, n := range s.Contents {
 		err := a.analyzeNode(n)
@@ -376,7 +393,7 @@ func (a *analyzer) VisitBlock(s ast.Block) (interface{}, error) {
 		}
 	}
 
-	a.env = e.Parent
+	a.endScope()
 
 	return nil, nil
 }

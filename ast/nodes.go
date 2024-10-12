@@ -141,6 +141,10 @@ func (e GroupingExpr) n() nodetype {
 type FuncExpr struct {
 	Params []Identifier
 	Body   Block
+	Depth  struct {
+		Specified bool
+		Tk        *tokens.Token
+	}
 }
 
 func (e FuncExpr) e() nodetype {

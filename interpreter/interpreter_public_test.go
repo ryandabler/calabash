@@ -943,9 +943,49 @@ func TestEval(t *testing.T) {
 			{
 				name: "function calls can be over-applied with spreading",
 				text: "let a, b = fn (a) -> a + 1, [1,2,3]; a(b...)",
-				validate: func(v interface{}, is interpreter.IntpState) error {
+				validate: func(v interface{}, _ interpreter.IntpState) error {
 					if !reflect.DeepEqual(v, value.NewNumber(2)) {
 						return errors.New("Over-applied function did not call correctly")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "functions with full closure can access any variables",
+				text: "let a, mut z = 1, bottom; if true { let b = 2; if true { z = (fn<> () -> a + b)(); } } z",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewNumber(3)) {
+						return errors.New("Full closure did not properly reference all the variables")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "functions with full closure can mutate variables in higher scopes",
+				text: "let mut a, mut b = 1, bottom; if true { if true { fn<> () { a = true; b = false; }() } }",
+				validate: func(_ interface{}, is interpreter.IntpState) error {
+					a := is.Env.Get("a")
+					b := is.Env.Get("b")
+
+					if !reflect.DeepEqual(a, value.NewBoolean(true)) {
+						return errors.New("Full closure did not properly reference `a` variable")
+					}
+
+					if !reflect.DeepEqual(b, value.NewBoolean(false)) {
+						return errors.New("Full closure did not properly reference `a` variable")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "functions with limited closure can access any variable in their scope",
+				text: "let mut a = 1; if true { let b = 2; if true { a = (fn<3> () -> 3 + b)(); } } a",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewNumber(5)) {
+						return errors.New("Full closure did not properly reference all the variables")
 					}
 
 					return nil
@@ -1150,6 +1190,17 @@ func TestEval(t *testing.T) {
 
 					if !reflect.DeepEqual(tpl.Items[1], n) {
 						return errors.New("Second element should be 2 for tuple")
+					}
+
+					return nil
+				},
+			},
+			{
+				name: "protos can access closed variables",
+				text: "let a, b = 1, true < proto { 'abc' -> fn<> () -> a }; b->'abc'()",
+				validate: func(v interface{}, _ interpreter.IntpState) error {
+					if !reflect.DeepEqual(v, value.NewNumber(1)) {
+						return errors.New("proto method could not access outer scope")
 					}
 
 					return nil

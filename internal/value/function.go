@@ -2,15 +2,22 @@ package value
 
 import (
 	"calabash/ast"
+	"calabash/internal/environment"
 	"calabash/internal/slice"
 	"calabash/internal/uuid"
+	"calabash/lexer/tokens"
+	"strconv"
 )
 
 type Function struct {
 	ParamList []ast.Identifier
 	Body      ast.Block
-	Apps      []Value
-	hash      string
+	Depth     struct {
+		Specified bool
+		Tk        *tokens.Token
+	}
+	Apps []Value
+	hash string
 }
 
 func (v *Function) v() vtype {
@@ -78,6 +85,24 @@ func (v *Function) Call(e Evaluator) (interface{}, error) {
 	}
 
 	return rVal, nil
+}
+
+func (v *Function) Closure(env *environment.Environment[Value]) *environment.Environment[Value] {
+	// Case for `fn () ...` declarations: no closure
+	if !v.Depth.Specified {
+		return nil
+	}
+
+	// Case for `fn<> () ...` declaractions; full exposure
+	if v.Depth.Tk == nil {
+		return env
+	}
+
+	// Case for `fn<#> () ...` declarations; limited exposure
+	lex := v.Depth.Tk.Lexeme
+	d, _ := strconv.ParseUint(lex, 10, 64) // ignore error since static analyzer will catch these
+
+	return environment.Slice(env, d)
 }
 
 // Compile time checks

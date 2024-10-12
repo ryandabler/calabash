@@ -715,6 +715,27 @@ func (p *parser) callOrGet() (ast.Expr, error) {
 // }
 
 func (p *parser) function() (ast.Expr, error) {
+	// Determine closure depth; if empty no depth limits
+	depth := struct {
+		Specified bool
+		Tk        *tokens.Token
+	}{}
+
+	if p.isThenEat(tokentype.LESS) {
+		depth.Specified = true
+
+		if p.is(tokentype.NUMBER) {
+			tk, _ := p.eat(tokentype.NUMBER)
+			depth.Tk = &tk
+		}
+
+		_, err := p.eat(tokentype.GREAT)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// Get formal parameter list
 	_, err := p.eat(tokentype.LEFT_PAREN)
 
@@ -759,7 +780,7 @@ func (p *parser) function() (ast.Expr, error) {
 		}
 	}
 
-	return ast.FuncExpr{Params: idents, Body: body}, nil
+	return ast.FuncExpr{Params: idents, Body: body, Depth: depth}, nil
 }
 
 func (p *parser) tuple() (ast.Expr, error) {

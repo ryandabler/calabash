@@ -140,7 +140,7 @@ FUNDAMENTAL
     ;
 
 FUNCTION
-    : 'fn' '(' FUNC_ARGS? ')' FUNC_BODY
+    : 'fn' ['<' number? '>']? '(' FUNC_ARGS? ')' FUNC_BODY
     ;
 
 FUNC_ARGS
