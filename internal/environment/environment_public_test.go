@@ -377,4 +377,34 @@ func TestSlice(t *testing.T) {
 			t.Error("should not be able to find `c` in sliced environment")
 		}
 	})
+
+	t.Run("should leave original slice unchanged", func(t *testing.T) {
+		env := &environment.Environment[int]{
+			Fields: map[string]int{
+				"a": 10,
+			},
+			Parent: &environment.Environment[int]{
+				Fields: map[string]int{
+					"b": 10,
+				},
+				Parent: &environment.Environment[int]{
+					Fields: map[string]int{
+						"c": 10,
+					},
+					Parent: &environment.Environment[int]{
+						Fields: map[string]int{
+							"d": 10,
+						},
+						Parent: nil,
+					},
+				},
+			},
+		}
+
+		environment.Slice(env, 2)
+
+		if !env.Has("c") || !env.Has("d") {
+			t.Error("should be able to find `c` or `d` in original environment")
+		}
+	})
 }

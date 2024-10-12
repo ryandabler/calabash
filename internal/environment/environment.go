@@ -66,7 +66,9 @@ func Slice[T any](e *Environment[T], l uint64) *Environment[T] {
 	// `env`'s until we either hit depth or exhaust sliced
 	// environment's depth
 	for n := uint64(1); n < l && curOld.Parent != nil; n++ {
-		curNew.Parent = curOld.Parent
+		curNew.Parent = New[T](nil)
+		curNew.Parent.Fields = curOld.Parent.Fields
+
 		curNew = curNew.Parent
 		curOld = curOld.Parent
 	}
